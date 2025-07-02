@@ -7,38 +7,84 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
+      margin: 0;
+      font-family: 'Helvetica Neue', sans-serif;
+      color: white;
+      background: url('image0(6).jpeg') no-repeat center center fixed;
+      background-size: cover;
+    }
+    .overlay {
+      background: rgba(0, 0, 0, 0.75);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       padding: 20px;
     }
     .container {
-      max-width: 400px;
-      margin: auto;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    input, button {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 30px;
+      border-radius: 20px;
+      max-width: 420px;
       width: 100%;
-      padding: 10px;
-      margin: 10px 0;
+      backdrop-filter: blur(10px);
     }
     h2 {
       text-align: center;
+      font-weight: 300;
+      margin-bottom: 20px;
+    }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+    input {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+    input::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+    button {
+      background: white;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    button:hover {
+      background: #111;
+      color: white;
+    }
+    .admin-link {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .admin-link a {
+      color: #ccc;
+      text-decoration: underline;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Prise de rendez-vous</h2>
-    <form id="rdvForm">
-      <input type="text" id="name" placeholder="Votre nom" required>
-      <input type="email" id="email" placeholder="Votre email" required>
-      <input type="text" id="date" placeholder="Choisir la date et l'heure" required>
-      <button type="submit">Réserver</button>
-    </form>
-    <p id="confirmation" style="color:green; text-align:center;"></p>
+  <div class="overlay">
+    <div class="container">
+      <h2>Prendre rendez-vous</h2>
+      <form id="rdvForm">
+        <input type="text" name="name" placeholder="Votre nom" required>
+        <input type="email" name="email" placeholder="Votre email" required>
+        <input type="text" name="appointment" id="date" placeholder="Choisir la date et l'heure" required>
+        <button type="submit">Réserver</button>
+      </form>
+      <div class="admin-link">
+        <a href="https://formspree.io/login" target="_blank">Se connecter à l’espace admin</a>
+      </div>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -51,15 +97,33 @@
 
     document.getElementById('rdvForm').addEventListener('submit', function(e) {
       e.preventDefault();
-      const name = document.getElementById('name').value;
-      const email = document.getElementById('email').value;
-      const date = document.getElementById('date').value;
 
-      // Simule un envoi (dans un vrai site, cela enverrait à un backend ou via Formspree/Netlify Forms)
-      document.getElementById('confirmation').textContent = `Merci ${name}, votre RDV est confirmé pour le ${date}. Un email sera envoyé à ${email}.`;
+      const form = e.target;
+      const appointment = document.getElementById('date').value;
+      const name = form.elements['name'].value;
+      const email = form.elements['email'].value;
 
-      // Réinitialise le formulaire
-      this.reset();
+      const formData = new FormData(form);
+
+      fetch('https://formspree.io/f/xnnvrqkn', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json'
+        },
+        body: formData
+      })
+      .then(response => {
+        if (response.ok) {
+          const params = new URLSearchParams();
+          params.append('appointment', appointment);
+          window.location.href = `confirmation.html?${params.toString()}`;
+        } else {
+          alert("Une erreur est survenue. Veuillez réessayer.");
+        }
+      })
+      .catch(() => {
+        alert("Erreur de réseau. Veuillez réessayer plus tard.");
+      });
     });
   </script>
 </body>
