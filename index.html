@@ -78,7 +78,7 @@
       <form id="rdvForm">
         <input type="text" name="name" placeholder="Votre nom" required>
         <input type="tel" name="phone" placeholder="Votre numéro de téléphone" required>
-        <input type="text" name="appointment" id="date" placeholder="Choisir la date et l'heure" required>
+        <input type="text" name="appointment" id="date" placeholder="Choisir la date et l'heure" required readonly>
         <button type="submit">Réserver</button>
       </form>
       <div class="admin-link">
@@ -99,11 +99,13 @@
     getUnavailableSlots().then(blocked => {
       flatpickr("#date", {
         enableTime: true,
-        dateFormat: "Y-m-d H:i",
+        noCalendar: false,
+        dateFormat: "Y-m-d H:00",
         minDate: "today",
         time_24hr: true,
         minuteIncrement: 60,
-        disable: blocked.map(d => d.trim())
+        disable: blocked.map(d => d.trim()),
+        allowInput: false
       });
     });
 
