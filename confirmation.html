@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Confirmation de rendez-vous</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f8ff;
+      padding: 50px;
+      text-align: center;
+    }
+    .confirmation {
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      display: inline-block;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="confirmation">
+    <h2>Merci pour votre réservation !</h2>
+    <p id="appointmentInfo"></p>
+    <p><strong>Venez à l'heure, si possible sans rien dans les cheveux (gel, cire, poudre).</strong></p>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const appointment = params.get('appointment');
+    if (appointment) {
+      document.getElementById('appointmentInfo').textContent = `Votre rendez-vous est prévu pour le ${appointment}`;
+    }
+  </script>
+</body>
+</html>
