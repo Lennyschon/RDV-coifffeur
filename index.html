@@ -75,7 +75,7 @@
   <div class="overlay">
     <div class="container">
       <h2>Prendre rendez-vous</h2>
-      <form id="rdvForm">
+      <form id="rdvForm" action="https://formspree.io/f/xnnvrqkn" method="POST">
         <input type="text" name="name" placeholder="Votre nom" required>
         <input type="tel" name="phone" placeholder="Votre numéro de téléphone" required>
         <input type="text" name="appointment" id="date" placeholder="Choisir la date et l'heure" required readonly>
@@ -98,37 +98,6 @@
       minuteIncrement: 60,
       allowInput: false,
       disableMobile: true
-    });
-
-    document.getElementById('rdvForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-
-      const form = e.target;
-      const appointment = document.getElementById('date').value;
-      const name = form.elements['name'].value;
-      const phone = form.elements['phone'].value;
-
-      const formData = new FormData();
-      formData.append('name', name);
-      formData.append('phone', phone);
-      formData.append('appointment', appointment);
-
-      fetch("https://script.google.com/macros/s/AKfycbwNH7-2RJO3lRDKANJxL-NVD2WyPkUVGw1ldRJkfa4FR8kPqDrMDxwcsSCSNgJKhlDC/exec", {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => {
-        if (response.ok) {
-          const params = new URLSearchParams();
-          params.append('appointment', appointment);
-          window.location.href = `confirmation.html?${params.toString()}`;
-        } else {
-          alert("Une erreur est survenue. Veuillez réessayer.");
-        }
-      })
-      .catch(() => {
-        alert("Erreur de réseau. Veuillez réessayer plus tard.");
-      });
     });
   </script>
 </body>
