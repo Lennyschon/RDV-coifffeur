@@ -75,7 +75,8 @@
   <div class="overlay">
     <div class="container">
       <h2>Prendre rendez-vous</h2>
-      <form id="rdvForm" action="https://formspree.io/f/xnnvrqkn" method="POST">
+      <p style="text-align:center; font-size:14px; margin-bottom:20px;">Adresse : 152 chemin de puybarde, Castelnau-sur-Gupie, 47180</p>
+      <form id="rdvForm">
         <input type="text" name="name" placeholder="Votre nom" required>
         <input type="tel" name="phone" placeholder="Votre numéro de téléphone" required>
         <input type="text" name="appointment" id="date" placeholder="Choisir la date et l'heure" required readonly>
@@ -98,6 +99,26 @@
       minuteIncrement: 60,
       allowInput: false,
       disableMobile: true
+    });
+
+    document.getElementById('rdvForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const form = e.target;
+      const data = new FormData(form);
+
+      fetch("https://formspree.io/f/xnnvrqkn", {
+        method: "POST",
+        body: data,
+        headers: { 'Accept': 'application/json' }
+      }).then(response => {
+        if (response.ok) {
+          window.location.href = "confirmation.html";
+        } else {
+          alert("Erreur lors de l'envoi. Réessaye.");
+        }
+      }).catch(() => {
+        alert("Erreur de réseau.");
+      });
     });
   </script>
 </body>
