@@ -89,25 +89,15 @@
 
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script>
-    async function getUnavailableSlots() {
-      const res = await fetch('https://docs.google.com/spreadsheets/d/1aKnaQoQvF2QrLXcm7DxUe7YgiPtdCvLMdU4eNcSRhKc/gviz/tq?tqx=out:csv&sheet=RDV_Pris');
-      const text = await res.text();
-      const lines = text.trim().split('\n');
-      return lines.slice(1); // ignore l'en-tête
-    }
-
-    getUnavailableSlots().then(blocked => {
-      flatpickr("#date", {
-        enableTime: true,
-        noCalendar: false,
-        dateFormat: "Y-m-d H:i",
-        minDate: "today",
-        time_24hr: true,
-        minuteIncrement: 60,
-        disable: blocked.map(d => d.trim()),
-        allowInput: false,
-        disableMobile: true
-      });
+    flatpickr("#date", {
+      enableTime: true,
+      noCalendar: false,
+      dateFormat: "Y-m-d H:i",
+      minDate: "today",
+      time_24hr: true,
+      minuteIncrement: 60,
+      allowInput: false,
+      disableMobile: true
     });
 
     document.getElementById('rdvForm').addEventListener('submit', function(e) {
@@ -143,4 +133,3 @@
   </script>
 </body>
 </html>
-
