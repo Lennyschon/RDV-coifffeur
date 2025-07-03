@@ -69,7 +69,7 @@
       margin: 10px 0;
     }
     .slot {
-      background: rgba(0, 128, 0, 0.5); /* vert pour dispo */
+      background: rgba(0, 128, 0, 0.5);
       padding: 10px;
       text-align: center;
       border-radius: 10px;
@@ -261,12 +261,6 @@
         body: formData,
         headers: { 'Accept': 'application/json' }
       }).then(response => {
-        // Envoi du SMS via Webhook Make
-        fetch("https://hook.eu2.make.com/7wgd9zzxmukl9g5rayjrcjqq9rml2ey2", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, date, hour })
-        });
         if (response.ok) {
           window.location.href = `confirmation.html?date=${encodeURIComponent(date)}&hour=${encodeURIComponent(hour)}`;
         } else {
