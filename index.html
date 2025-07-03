@@ -81,6 +81,11 @@
       color: black;
       font-weight: bold;
     }
+    .slot.blocked {
+      background: rgba(255, 0, 0, 0.3);
+      pointer-events: none;
+      color: #ccc;
+    }
     .admin-link {
       text-align: center;
       margin-top: 20px;
@@ -122,31 +127,67 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script>
-    document.querySelectorAll('.slot').forEach(slot => {
-      slot.addEventListener('click', () => {
-        document.querySelectorAll('.slot').forEach(s => s.classList.remove('selected'));
-        slot.classList.add('selected');
-        document.getElementById('appointment').value = slot.textContent;
+    const { createClient } = supabase;
+    const supabaseUrl = 'https://wszogvsnyecymcrxmtgq.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indzem9ndnNueWVjeW1jcnhtdGdxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE1MzEwMDgsImV4cCI6MjA2NzEwNzAwOH0.5EhuU21iNdQtSJsv3rivXtlwblMfZuq-Rj1bRHo5_8o';
+    const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+    const slotDivs = document.querySelectorAll('.slot');
+    const dateInput = document.getElementById('date');
+    const appointmentInput = document.getElementById('appointment');
+
+    dateInput.addEventListener('change', async () => {
+      const date = dateInput.value;
+      const { data, error } = await supabaseClient
+        .from('reservations')
+        .select('*')
+        .eq('date', date);
+      const reservedSlots = data.map(r => r.hour);
+      slotDivs.forEach(slot => {
+        slot.classList.remove('blocked');
+        if (reservedSlots.includes(slot.textContent)) {
+          slot.classList.add('blocked');
+        }
       });
     });
 
-    document.getElementById('rdvForm').addEventListener('submit', function(e) {
+    slotDivs.forEach(slot => {
+      slot.addEventListener('click', () => {
+        if (slot.classList.contains('blocked')) return;
+        slotDivs.forEach(s => s.classList.remove('selected'));
+        slot.classList.add('selected');
+        appointmentInput.value = slot.textContent;
+      });
+    });
+
+    document.getElementById('rdvForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       const form = e.target;
-      const data = new FormData(form);
+      const formData = new FormData(form);
 
-      const date = document.getElementById('date').value;
-      const hour = document.getElementById('appointment').value;
+      const name = formData.get('name');
+      const phone = formData.get('phone');
+      const date = dateInput.value;
+      const hour = appointmentInput.value;
 
       if (!hour) {
         alert("Veuillez sélectionner un horaire.");
         return;
       }
 
+      // Enregistre dans Supabase
+      const { error } = await supabaseClient.from('reservations').insert([{ date, hour }]);
+      if (error) {
+        alert("Créneau déjà pris ou erreur serveur.");
+        return;
+      }
+
+      // Envoie le formulaire vers Formspree
       fetch("https://formspree.io/f/xnnvrqkn", {
         method: "POST",
-        body: data,
+        body: formData,
         headers: { 'Accept': 'application/json' }
       }).then(response => {
         if (response.ok) {
@@ -161,4 +202,3 @@
   </script>
 </body>
 </html>
-
