@@ -27,6 +27,7 @@
       max-width: 420px;
       width: 100%;
       backdrop-filter: blur(10px);
+      position: relative;
     }
     h2 {
       text-align: center;
@@ -96,6 +97,8 @@
       color: white;
       border: 1px solid white;
       margin-top: 5px;
+      font-size: 12px;
+      padding: 8px;
     }
     .admin-access {
       margin-top: 15px;
@@ -110,11 +113,29 @@
       text-decoration: underline;
       font-size: 14px;
     }
+    .loading {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0,0,0,0.6);
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+    }
+    .success-message {
+      background: rgba(0, 255, 0, 0.2);
+      padding: 10px;
+      text-align: center;
+      border-radius: 10px;
+      margin-top: 10px;
+      display: none;
+    }
   </style>
 </head>
 <body>
   <div class="overlay">
     <div class="container">
+      <div class="loading" id="loading" style="display:none;">Chargement...</div>
       <h2>Prendre rendez-vous</h2>
       <p style="text-align:center; font-size:14px; margin-bottom:20px;">Adresse : 152 chemin de puybarde, Castelnau-sur-Gupie, 47180</p>
       <form id="rdvForm">
@@ -123,18 +144,9 @@
         <label for="date">Choisir un jour :</label>
         <input type="date" name="date" id="date" required>
         <input type="hidden" name="hour" id="appointment" required>
-        <div class="grid" id="slots">
-          <div class="slot">12:00</div>
-          <div class="slot">13:00</div>
-          <div class="slot">14:00</div>
-          <div class="slot">15:00</div>
-          <div class="slot">16:00</div>
-          <div class="slot">17:00</div>
-          <div class="slot">18:00</div>
-          <div class="slot">19:00</div>
-          <div class="slot">20:00</div>
-        </div>
+        <div class="grid" id="slots"></div>
         <button type="submit">Réserver</button>
+        <div class="success-message" id="successMsg">✅ Réservation prise en compte !</div>
       </form>
 
       <div class="admin-access">
@@ -158,14 +170,60 @@
     const API_KEY = "$2a$10$YqBXzyqiaHue0./s7FwmUe5TZXvSEZ/zC9yjaWk9HLXxrH2SahHF6";
     const BIN_URL = "https://api.jsonbin.io/v3/b/" + BIN_ID;
 
-    const slotDivs = document.querySelectorAll('.slot');
+    const slotDivs = [];
+    const hours = ["12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"];
+    const slotsContainer = document.getElementById('slots');
+    const loading = document.getElementById('loading');
+    const successMsg = document.getElementById('successMsg');
     const dateInput = document.getElementById('date');
     const appointmentInput = document.getElementById('appointment');
     const blockDayBtn = document.getElementById('blockDay');
     const unblockDayBtn = document.getElementById('unblockDay');
 
+    function buildGrid() {
+      slotsContainer.innerHTML = "";
+      hours.forEach(hour => {
+        const div = document.createElement('div');
+        div.textContent = hour;
+        div.className = 'slot';
+        slotsContainer.appendChild(div);
+        slotDivs.push(div);
+
+        div.addEventListener('click', () => {
+          if (div.classList.contains('blocked')) return;
+          slotDivs.forEach(s => s.classList.remove('selected'));
+          div.classList.add('selected');
+          appointmentInput.value = hour;
+        });
+
+        div.addEventListener('contextmenu', async e => {
+          e.preventDefault();
+          const date = dateInput.value;
+          if (!date) return alert("Choisis une date avant de bloquer un horaire");
+
+          const res = await fetch(BIN_URL + "/latest", { headers: { "X-Master-Key": API_KEY }});
+          const json = await res.json();
+          const data = json.record;
+          if (!data[date]) data[date] = [];
+          if (!data[date].includes(hour)) data[date].push(hour);
+
+          await fetch(BIN_URL, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Master-Key": API_KEY
+            },
+            body: JSON.stringify(data)
+          });
+          loadBlockedSlots();
+        });
+      });
+    }
+
     async function loadBlockedSlots() {
       const date = dateInput.value;
+      if (!date) return;
+      loading.style.display = "block";
       const res = await fetch(BIN_URL + "/latest", {
         headers: { "X-Master-Key": API_KEY }
       });
@@ -180,43 +238,8 @@
           slot.classList.add('blocked');
         }
       });
+      loading.style.display = "none";
     }
-
-    dateInput.addEventListener('change', loadBlockedSlots);
-
-    slotDivs.forEach(slot => {
-      slot.addEventListener('click', () => {
-        if (slot.classList.contains('blocked')) return;
-        slotDivs.forEach(s => s.classList.remove('selected'));
-        slot.classList.add('selected');
-        appointmentInput.value = slot.textContent;
-      });
-
-      slot.addEventListener('contextmenu', async e => {
-        e.preventDefault();
-        const date = dateInput.value;
-        const hour = slot.textContent;
-        if (!date) return alert("Choisis une date avant de bloquer un horaire");
-
-        const res = await fetch(BIN_URL + "/latest", { headers: { "X-Master-Key": API_KEY }});
-        const json = await res.json();
-        const data = json.record;
-
-        if (!data[date]) data[date] = [];
-        if (!data[date].includes(hour)) data[date].push(hour);
-
-        await fetch(BIN_URL, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Master-Key": API_KEY
-          },
-          body: JSON.stringify(data)
-        });
-
-        loadBlockedSlots();
-      });
-    });
 
     document.getElementById('rdvForm').addEventListener('submit', async function(e) {
       e.preventDefault();
@@ -262,7 +285,8 @@
         headers: { 'Accept': 'application/json' }
       }).then(response => {
         if (response.ok) {
-          window.location.href = `confirmation.html?date=${encodeURIComponent(date)}&hour=${encodeURIComponent(hour)}`;
+          successMsg.style.display = "block";
+          setTimeout(() => window.location.href = `confirmation.html?date=${encodeURIComponent(date)}&hour=${encodeURIComponent(hour)}`, 1500);
         } else {
           alert("Erreur lors de l'envoi. Réessaye.");
         }
@@ -284,13 +308,10 @@
     blockDayBtn.addEventListener('click', async () => {
       const date = dateInput.value;
       if (!date) return alert("Choisis une date d'abord");
-
       const res = await fetch(BIN_URL + "/latest", { headers: { "X-Master-Key": API_KEY }});
       const json = await res.json();
       const data = json.record;
-
-      data[date] = ["12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"];
-
+      data[date] = [...hours];
       await fetch(BIN_URL, {
         method: "PUT",
         headers: {
@@ -299,20 +320,16 @@
         },
         body: JSON.stringify(data)
       });
-
       loadBlockedSlots();
     });
 
     unblockDayBtn.addEventListener('click', async () => {
       const date = dateInput.value;
       if (!date) return alert("Choisis une date d'abord");
-
       const res = await fetch(BIN_URL + "/latest", { headers: { "X-Master-Key": API_KEY }});
       const json = await res.json();
       const data = json.record;
-
       delete data[date];
-
       await fetch(BIN_URL, {
         method: "PUT",
         headers: {
@@ -321,9 +338,11 @@
         },
         body: JSON.stringify(data)
       });
-
       loadBlockedSlots();
     });
+
+    buildGrid();
+    dateInput.addEventListener('change', loadBlockedSlots);
   </script>
 </body>
 </html>
