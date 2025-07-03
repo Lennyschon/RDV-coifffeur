@@ -69,7 +69,7 @@
       margin: 10px 0;
     }
     .slot {
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(0, 128, 0, 0.5); /* vert pour dispo */
       padding: 10px;
       text-align: center;
       border-radius: 10px;
@@ -82,9 +82,24 @@
       font-weight: bold;
     }
     .slot.blocked {
-      background: rgba(255, 0, 0, 0.3);
+      background: rgba(255, 0, 0, 0.5);
       pointer-events: none;
       color: #ccc;
+    }
+    .admin-tools {
+      text-align: center;
+      margin-top: 20px;
+      display: none;
+    }
+    .admin-tools button {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: 1px solid white;
+      margin-top: 5px;
+    }
+    .admin-access {
+      margin-top: 15px;
+      text-align: center;
     }
     .admin-link {
       text-align: center;
@@ -121,6 +136,17 @@
         </div>
         <button type="submit">Réserver</button>
       </form>
+
+      <div class="admin-access">
+        <input type="password" id="adminPass" placeholder="Code admin">
+        <button onclick="checkAdmin()">Activer admin</button>
+      </div>
+
+      <div class="admin-tools" id="adminTools">
+        <button id="blockDay">Bloquer toute la journée</button>
+        <button id="unblockDay">Débloquer la journée</button>
+      </div>
+
       <div class="admin-link">
         <a href="https://formspree.io/login" target="_blank">Se connecter à l’espace admin</a>
       </div>
@@ -135,6 +161,8 @@
     const slotDivs = document.querySelectorAll('.slot');
     const dateInput = document.getElementById('date');
     const appointmentInput = document.getElementById('appointment');
+    const blockDayBtn = document.getElementById('blockDay');
+    const unblockDayBtn = document.getElementById('unblockDay');
 
     async function loadBlockedSlots() {
       const date = dateInput.value;
@@ -147,6 +175,7 @@
 
       slotDivs.forEach(slot => {
         slot.classList.remove('blocked');
+        slot.classList.remove('selected');
         if (reserved.includes(slot.textContent)) {
           slot.classList.add('blocked');
         }
@@ -161,6 +190,31 @@
         slotDivs.forEach(s => s.classList.remove('selected'));
         slot.classList.add('selected');
         appointmentInput.value = slot.textContent;
+      });
+
+      slot.addEventListener('contextmenu', async e => {
+        e.preventDefault();
+        const date = dateInput.value;
+        const hour = slot.textContent;
+        if (!date) return alert("Choisis une date avant de bloquer un horaire");
+
+        const res = await fetch(BIN_URL + "/latest", { headers: { "X-Master-Key": API_KEY }});
+        const json = await res.json();
+        const data = json.record;
+
+        if (!data[date]) data[date] = [];
+        if (!data[date].includes(hour)) data[date].push(hour);
+
+        await fetch(BIN_URL, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Master-Key": API_KEY
+          },
+          body: JSON.stringify(data)
+        });
+
+        loadBlockedSlots();
       });
     });
 
@@ -178,7 +232,6 @@
         return;
       }
 
-      // GET current bookings
       const res = await fetch(BIN_URL + "/latest", {
         headers: { "X-Master-Key": API_KEY }
       });
@@ -191,7 +244,6 @@
         return;
       }
 
-      // Add new booking
       if (!data[date]) data[date] = [];
       data[date].push(hour);
 
@@ -204,7 +256,6 @@
         body: JSON.stringify(data)
       });
 
-      // Envoie vers Formspree
       fetch("https://formspree.io/f/xnnvrqkn", {
         method: "POST",
         body: formData,
@@ -218,6 +269,60 @@
       }).catch(() => {
         alert("Erreur de réseau.");
       });
+    });
+
+    function checkAdmin() {
+      const input = document.getElementById('adminPass').value;
+      if (input === "0803") {
+        document.getElementById('adminTools').style.display = "block";
+        alert("Accès admin activé");
+      } else {
+        alert("Code incorrect");
+      }
+    }
+
+    blockDayBtn.addEventListener('click', async () => {
+      const date = dateInput.value;
+      if (!date) return alert("Choisis une date d'abord");
+
+      const res = await fetch(BIN_URL + "/latest", { headers: { "X-Master-Key": API_KEY }});
+      const json = await res.json();
+      const data = json.record;
+
+      data[date] = ["12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"];
+
+      await fetch(BIN_URL, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Master-Key": API_KEY
+        },
+        body: JSON.stringify(data)
+      });
+
+      loadBlockedSlots();
+    });
+
+    unblockDayBtn.addEventListener('click', async () => {
+      const date = dateInput.value;
+      if (!date) return alert("Choisis une date d'abord");
+
+      const res = await fetch(BIN_URL + "/latest", { headers: { "X-Master-Key": API_KEY }});
+      const json = await res.json();
+      const data = json.record;
+
+      delete data[date];
+
+      await fetch(BIN_URL, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Master-Key": API_KEY
+        },
+        body: JSON.stringify(data)
+      });
+
+      loadBlockedSlots();
     });
   </script>
 </body>
