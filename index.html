@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Prise de RDV - Coiffeur</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <style>
     body {
       margin: 0;
@@ -60,6 +59,25 @@
       background: #111;
       color: white;
     }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 10px 0;
+    }
+    .slot {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 10px;
+      text-align: center;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .slot.selected {
+      background: white;
+      color: black;
+      font-weight: bold;
+    }
     .admin-link {
       text-align: center;
       margin-top: 20px;
@@ -79,7 +97,18 @@
       <form id="rdvForm">
         <input type="text" name="name" placeholder="Votre nom" required>
         <input type="tel" name="phone" placeholder="Votre numéro de téléphone" required>
-        <input type="text" name="appointment" id="date" placeholder="Choisir la date et l'heure" required readonly>
+        <input type="hidden" name="appointment" id="appointment" required>
+        <div class="grid" id="slots">
+          <div class="slot">12:00</div>
+          <div class="slot">13:00</div>
+          <div class="slot">14:00</div>
+          <div class="slot">15:00</div>
+          <div class="slot">16:00</div>
+          <div class="slot">17:00</div>
+          <div class="slot">18:00</div>
+          <div class="slot">19:00</div>
+          <div class="slot">20:00</div>
+        </div>
         <button type="submit">Réserver</button>
       </form>
       <div class="admin-link">
@@ -88,23 +117,24 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script>
-    flatpickr("#date", {
-      enableTime: true,
-      noCalendar: false,
-      dateFormat: "Y-m-d H:i",
-      minDate: "today",
-      time_24hr: true,
-      minuteIncrement: 60,
-      allowInput: false,
-      disableMobile: true
+    document.querySelectorAll('.slot').forEach(slot => {
+      slot.addEventListener('click', () => {
+        document.querySelectorAll('.slot').forEach(s => s.classList.remove('selected'));
+        slot.classList.add('selected');
+        document.getElementById('appointment').value = slot.textContent;
+      });
     });
 
     document.getElementById('rdvForm').addEventListener('submit', function(e) {
       e.preventDefault();
       const form = e.target;
       const data = new FormData(form);
+
+      if (!data.get('appointment')) {
+        alert("Veuillez sélectionner un horaire.");
+        return;
+      }
 
       fetch("https://formspree.io/f/xnnvrqkn", {
         method: "POST",
