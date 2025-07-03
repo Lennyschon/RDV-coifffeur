@@ -2,36 +2,66 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Confirmation de rendez-vous</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirmation RDV</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f0f8ff;
-      padding: 50px;
+      margin: 0;
+      font-family: 'Helvetica Neue', sans-serif;
+      color: white;
+      background: url('image0(6).jpeg') no-repeat center center fixed;
+      background-size: cover;
+    }
+    .overlay {
+      background: rgba(0, 0, 0, 0.75);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .confirmation-box {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 30px;
+      border-radius: 20px;
+      max-width: 420px;
+      width: 100%;
+      backdrop-filter: blur(10px);
       text-align: center;
     }
-    .confirmation {
-      background: #fff;
-      padding: 30px;
-      border-radius: 10px;
+    h1 {
+      font-weight: 300;
+      margin-bottom: 20px;
+    }
+    p {
+      font-size: 16px;
+      margin-top: 0;
+    }
+    a {
       display: inline-block;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin-top: 20px;
+      padding: 12px 20px;
+      background: white;
+      color: black;
+      text-decoration: none;
+      border-radius: 10px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+    a:hover {
+      background: #111;
+      color: white;
     }
   </style>
 </head>
 <body>
-  <div class="confirmation">
-    <h2>Merci pour votre réservation !</h2>
-    <p id="appointmentInfo"></p>
-    <p><strong>Venez à l'heure, si possible sans rien dans les cheveux (gel, cire, poudre).</strong></p>
+  <div class="overlay">
+    <div class="confirmation-box">
+      <h1>Rendez-vous confirmé !</h1>
+      <p>Viens à l'heure, si possible sans rien dans les cheveux (gel, cire, poudre).</p>
+      <p>Adresse : 152 chemin de puybarde, Castelnau-sur-Gupie, 47180</p>
+      <a href="index.html">Retour à l'accueil</a>
+    </div>
   </div>
-
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    const appointment = params.get('appointment');
-    if (appointment) {
-      document.getElementById('appointmentInfo').textContent = `Votre rendez-vous est prévu pour le ${appointment}`;
-    }
-  </script>
 </body>
 </html>
