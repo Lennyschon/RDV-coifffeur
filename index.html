@@ -33,7 +33,7 @@
       font-weight: 300;
       margin-bottom: 20px;
     }
-    input, button {
+    input, button, select {
       width: 100%;
       padding: 12px;
       margin: 10px 0;
@@ -41,12 +41,15 @@
       border-radius: 10px;
       font-size: 16px;
     }
-    input {
+    input, select {
       background: rgba(255, 255, 255, 0.1);
       color: white;
     }
     input::placeholder {
       color: rgba(255, 255, 255, 0.6);
+    }
+    option {
+      color: black;
     }
     button {
       background: white;
@@ -97,7 +100,9 @@
       <form id="rdvForm">
         <input type="text" name="name" placeholder="Votre nom" required>
         <input type="tel" name="phone" placeholder="Votre numéro de téléphone" required>
-        <input type="hidden" name="appointment" id="appointment" required>
+        <label for="date">Choisir un jour :</label>
+        <input type="date" name="date" id="date" required>
+        <input type="hidden" name="hour" id="appointment" required>
         <div class="grid" id="slots">
           <div class="slot">12:00</div>
           <div class="slot">13:00</div>
@@ -131,7 +136,10 @@
       const form = e.target;
       const data = new FormData(form);
 
-      if (!data.get('appointment')) {
+      const date = document.getElementById('date').value;
+      const hour = document.getElementById('appointment').value;
+
+      if (!hour) {
         alert("Veuillez sélectionner un horaire.");
         return;
       }
@@ -142,7 +150,7 @@
         headers: { 'Accept': 'application/json' }
       }).then(response => {
         if (response.ok) {
-          window.location.href = "confirmation.html";
+          window.location.href = `confirmation.html?date=${encodeURIComponent(date)}&hour=${encodeURIComponent(hour)}`;
         } else {
           alert("Erreur lors de l'envoi. Réessaye.");
         }
@@ -153,3 +161,4 @@
   </script>
 </body>
 </html>
+
