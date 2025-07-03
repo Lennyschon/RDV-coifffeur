@@ -141,7 +141,7 @@
     dateInput.addEventListener('change', async () => {
       const date = dateInput.value;
       const { data, error } = await supabaseClient
-        .from('reservations')
+        .from('"Reservations"')
         .select('*')
         .eq('date', date);
       const reservedSlots = data.map(r => r.hour);
@@ -178,7 +178,7 @@
       }
 
       // Enregistre dans Supabase
-      const { error } = await supabaseClient.from('reservations').insert([{ date, hour }]);
+      const { error } = await supabaseClient.from('"Reservations"').insert([{ date, hour }]);
       if (error) {
         alert("Créneau déjà pris ou erreur serveur.");
         return;
