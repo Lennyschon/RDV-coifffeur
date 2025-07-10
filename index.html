@@ -223,7 +223,9 @@
       }).then(response => {
         if (response.ok) {
           successMsg.style.display = "block";
-          setTimeout(() => window.location.reload(), 2000);
+          setTimeout(() => {
+            window.location.href = `confirmation.html?date=${encodeURIComponent(date)}&hour=${encodeURIComponent(hour)}`;
+          }, 1500);
         } else {
           alert("Erreur lors de l'envoi.");
         }
@@ -246,3 +248,9 @@
   </script>
 </body>
 </html>
+"""
+
+# Save to file
+path = "/mnt/data/index.html"
+with open(path, "w", encoding="utf-8") as f:
+    f.write(html_code)
