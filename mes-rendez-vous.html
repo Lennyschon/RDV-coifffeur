@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mes Rendez-vous</title>
+  <style>
+    body {
+      font-family: 'Helvetica Neue', sans-serif;
+      background: #0e0e0e;
+      color: white;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: rgba(255,255,255,0.05);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.8);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 28px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      background: linear-gradient(45deg, #ffffff, #aaaaaa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 10px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+    input {
+      background: rgba(255,255,255,0.1);
+      color: white;
+    }
+    button {
+      background: white;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .rdv-list {
+      margin-top: 20px;
+    }
+    .rdv-item {
+      background: rgba(0, 128, 0, 0.3);
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+    }
+    .rdv-item button {
+      background: rgba(255,0,0,0.8);
+      color: white;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Mes rendez-vous</h2>
+    <input type="text" id="lastDigits" placeholder="4 derniers chiffres de votre téléphone">
+    <button onclick="loadMyRDVs()">Afficher mes rendez-vous</button>
+    <div class="rdv-list" id="rdvList"></div>
+  </div>
+
+  <script>
+    const BIN_ID = "686647098960c979a5b64e4d";
+    const API_KEY = "$2a$10$YqBXzyqiaHue0./s7FwmUe5TZXvSEZ/zC9yjaWk9HLXxrH2SahHF6";
+    const BIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
+    async function loadMyRDVs() {
+      const lastDigits = document.getElementById("lastDigits").value.trim();
+      if (lastDigits.length !== 4) return alert("Merci d'entrer les 4 derniers chiffres correctement.");
+
+      const res = await fetch(BIN_URL + "/latest", { headers: { "X-Master-Key": API_KEY } });
+      const json = await res.json();
+      const data = json.record;
+      const rdvList = document.getElementById("rdvList");
+      rdvList.innerHTML = "";
+
+      Object.entries(data).forEach(([date, slots]) => {
+        slots.forEach((slot, index) => {
+          if (typeof slot === 'object' && slot.phone.endsWith(lastDigits)) {
+            const div = document.createElement("div");
+            div.className = "rdv-item";
+            div.innerHTML = `<strong>${date} - ${slot.time}</strong><br>${slot.name} (${slot.phone})`;
+
+            const btn = document.createElement("button");
+            btn.textContent = "Annuler ce rendez-vous";
+            btn.onclick = async () => {
+              slots.splice(index, 1);
+              await fetch(BIN_URL, {
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json",
+                  "X-Master-Key": API_KEY
+                },
+                body: JSON.stringify(data)
+              });
+              loadMyRDVs();
+            };
+
+            div.appendChild(btn);
+            rdvList.appendChild(div);
+          }
+        });
+      });
+    }
+  </script>
+</body>
+</html>
