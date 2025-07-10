@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendrier admin</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+    }
+    .calendar-container {
+      max-width: 700px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .controls {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .slot {
+      padding: 10px;
+      text-align: center;
+      border-radius: 5px;
+      background: #4caf50;
+      color: white;
+      cursor: pointer;
+    }
+    .slot.blocked {
+      background: #d32f2f;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+    .slot:hover:not(.blocked) {
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+  <div class="calendar-container">
+    <h2 id="dateTitle"></h2>
+    <div class="controls">
+      <button onclick="changeDay(-1)">⬅️ Précédent</button>
+      <button onclick="changeDay(1)">Suivant ➡️</button>
+    </div>
+    <div class="grid" id="slots"></div>
+  </div>
+
+  <script>
+    const BIN_ID = "686647098960c979a5b64e4d";
+    const API_KEY = "$2a$10$YqBXzyqiaHue0./s7FwmUe5TZXvSEZ/zC9yjaWk9HLXxrH2SahHF6";
+    const BIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+    const hours = [
+      "13:00","13:15","13:30","13:45",
+      "14:00","14:15","14:30","14:45",
+      "15:00","15:15","15:30","15:45",
+      "16:00","16:15","16:30","16:45",
+      "17:00","17:15","17:30","17:45",
+      "18:00","18:15","18:30","18:45",
+      "19:00","19:15","19:30","19:45",
+      "20:00","20:15","20:30","20:45"
+    ];
+
+    let currentDate = new Date();
+
+    function formatDate(date) {
+      return date.toISOString().split("T")[0];
+    }
+
+    function updateTitle(date) {
+      return date.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    async function loadSlots() {
+      const dateStr = formatDate(currentDate);
+      document.getElementById("dateTitle").innerText = updateTitle(currentDate);
+      const res = await fetch(BIN_URL + "/latest", { headers: { "X-Master-Key": API_KEY } });
+      const json = await res.json();
+      const data = json.record;
+      const reserved = data[dateStr] || [];
+      const slotsContainer = document.getElementById("slots");
+      slotsContainer.innerHTML = "";
+
+      hours.forEach(hour => {
+        const div = document.createElement("div");
+        div.className = "slot";
+        div.textContent = hour;
+        if (reserved.includes(hour)) {
+          div.classList.add("blocked");
+        }
+        div.addEventListener("click", async () => {
+          if (!reserved.includes(hour)) {
+            reserved.push(hour);
+          } else {
+            const index = reserved.indexOf(hour);
+            if (index > -1) reserved.splice(index, 1);
+          }
+          data[dateStr] = reserved;
+          await fetch(BIN_URL, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Master-Key": API_KEY
+            },
+            body: JSON.stringify(data)
+          });
+          loadSlots();
+        });
+        slotsContainer.appendChild(div);
+      });
+    }
+
+    function changeDay(n) {
+      currentDate.setDate(currentDate.getDate() + n);
+      loadSlots();
+    }
+
+    loadSlots();
+  </script>
+</body>
+</html>
