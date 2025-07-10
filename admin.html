@@ -1,5 +1,3 @@
-
-<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
@@ -7,46 +5,77 @@
   <title>Page admin - Calendrier</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
+      font-family: 'Helvetica Neue', sans-serif;
+      background: #121212;
+      color: white;
       margin: 0;
       padding: 20px;
     }
     h2 {
       text-align: center;
+      margin-bottom: 10px;
     }
     .calendar-container {
-      max-width: 700px;
+      max-width: 900px;
       margin: 0 auto;
-      background: white;
+      background: rgba(255, 255, 255, 0.05);
       padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 20px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(10px);
     }
     .controls {
       text-align: center;
       margin-bottom: 20px;
     }
+    .controls button, .back-button {
+      background: white;
+      color: black;
+      border: none;
+      padding: 10px 20px;
+      margin: 5px;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .controls button:hover, .back-button:hover {
+      background: #333;
+      color: white;
+    }
     .grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
       gap: 10px;
+      overflow-x: auto;
     }
     .slot {
+      flex: 1 0 9%;
+      min-width: 80px;
       padding: 10px;
       text-align: center;
-      border-radius: 5px;
-      background: #4caf50;
+      border-radius: 10px;
+      background: rgba(0, 128, 0, 0.5);
       color: white;
       cursor: pointer;
     }
     .slot.blocked {
-      background: #d32f2f;
+      background: rgba(255, 0, 0, 0.5);
       cursor: not-allowed;
-      opacity: 0.6;
+      opacity: 0.7;
     }
     .slot:hover:not(.blocked) {
-      opacity: 0.8;
+      background: rgba(0, 128, 0, 0.7);
+    }
+    .back-button {
+      display: block;
+      margin: 20px auto 0;
+      text-align: center;
+    }
+    .slot-name {
+      font-size: 0.8em;
+      color: #ccc;
+      margin-top: 4px;
     }
   </style>
 </head>
@@ -58,22 +87,14 @@
       <button onclick="changeDay(1)">Suivant ➡️</button>
     </div>
     <div class="grid" id="slots"></div>
+    <button class="back-button" onclick="window.location.href='index.html'">⬅ Retour</button>
   </div>
 
   <script>
     const BIN_ID = "686647098960c979a5b64e4d";
     const API_KEY = "$2a$10$YqBXzyqiaHue0./s7FwmUe5TZXvSEZ/zC9yjaWk9HLXxrH2SahHF6";
     const BIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
-    const hours = [
-      "13:00","13:15","13:30","13:45",
-      "14:00","14:15","14:30","14:45",
-      "15:00","15:15","15:30","15:45",
-      "16:00","16:15","16:30","16:45",
-      "17:00","17:15","17:30","17:45",
-      "18:00","18:15","18:30","18:45",
-      "19:00","19:15","19:30","19:45",
-      "20:00","20:15","20:30","20:45"
-    ];
+    const hours = ["12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"];
 
     let currentDate = new Date();
 
@@ -91,25 +112,37 @@
       const res = await fetch(BIN_URL + "/latest", { headers: { "X-Master-Key": API_KEY } });
       const json = await res.json();
       const data = json.record;
-      const reserved = data[dateStr] || [];
+      const dayData = data[dateStr] || [];
       const slotsContainer = document.getElementById("slots");
       slotsContainer.innerHTML = "";
 
       hours.forEach(hour => {
         const div = document.createElement("div");
         div.className = "slot";
+        const entry = dayData.find(d => typeof d === 'object' ? d.time === hour : d === hour);
         div.textContent = hour;
-        if (reserved.includes(hour)) {
+
+        if (entry) {
           div.classList.add("blocked");
-        }
-        div.addEventListener("click", async () => {
-          if (!reserved.includes(hour)) {
-            reserved.push(hour);
-          } else {
-            const index = reserved.indexOf(hour);
-            if (index > -1) reserved.splice(index, 1);
+          if (typeof entry === 'object' && entry.name) {
+            const name = document.createElement("div");
+            name.className = "slot-name";
+            name.textContent = entry.name;
+            div.appendChild(name);
           }
-          data[dateStr] = reserved;
+        }
+
+        div.addEventListener("click", async () => {
+          let updated = [...(data[dateStr] || [])];
+          const idx = updated.findIndex(e => (typeof e === 'object' && e.time === hour) || e === hour);
+
+          if (idx > -1) {
+            updated.splice(idx, 1);
+          } else {
+            updated.push(hour);
+          }
+
+          data[dateStr] = updated;
           await fetch(BIN_URL, {
             method: "PUT",
             headers: {
@@ -120,6 +153,7 @@
           });
           loadSlots();
         });
+
         slotsContainer.appendChild(div);
       });
     }
