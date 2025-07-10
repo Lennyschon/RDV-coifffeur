@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Prise de RDV - Coiffeur</title>
   <style>
     body {
@@ -29,6 +29,11 @@
       backdrop-filter: blur(10px);
       position: relative;
     }
+    h2 {
+      text-align: center;
+      font-weight: 300;
+      margin-bottom: 20px;
+    }
     input, button, select {
       width: 100%;
       padding: 12px;
@@ -37,11 +42,22 @@
       border-radius: 10px;
       font-size: 16px;
     }
+    input, select {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+    input::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+    option {
+      color: black;
+    }
     button {
       background: white;
       color: black;
       font-weight: bold;
       cursor: pointer;
+      transition: all 0.3s ease;
     }
     button:hover {
       background: #111;
@@ -59,6 +75,7 @@
       text-align: center;
       border-radius: 10px;
       cursor: pointer;
+      transition: all 0.2s;
     }
     .slot.selected {
       background: white;
@@ -70,31 +87,6 @@
       pointer-events: none;
       color: #ccc;
     }
-    .admin-btn {
-      position: fixed;
-      bottom: 10px;
-      right: 10px;
-      background: transparent;
-      border: none;
-      color: white;
-      font-size: 12px;
-      cursor: pointer;
-      opacity: 0.5;
-    }
-    .admin-popup {
-      position: fixed;
-      bottom: 40px;
-      right: 10px;
-      background: rgba(0,0,0,0.7);
-      padding: 10px;
-      border-radius: 10px;
-      display: none;
-    }
-    .admin-popup input {
-      width: 100px;
-      padding: 5px;
-      border-radius: 5px;
-    }
     .success-message {
       background: rgba(0, 255, 0, 0.2);
       padding: 10px;
@@ -103,36 +95,57 @@
       margin-top: 10px;
       display: none;
     }
+    .admin-access {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+    }
+    .admin-access input {
+      width: auto;
+      margin-right: 5px;
+      background: rgba(255,255,255,0.1);
+    }
+    .link-top-left {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(255,255,255,0.1);
+      padding: 10px 15px;
+      border-radius: 10px;
+      font-size: 14px;
+      color: white;
+      text-decoration: none;
+    }
   </style>
 </head>
 <body>
+  <a href="mes-rendez-vous.html" class="link-top-left">📅 Mes rendez-vous</a>
   <div class="overlay">
     <div class="container">
       <h2>Prendre rendez-vous</h2>
-      <p style="text-align:center; font-size:14px; margin-bottom:20px;">152 chemin de puybarde, Castelnau-sur-Gupie</p>
+      <p style="text-align:center; font-size:14px; margin-bottom:20px;">Adresse : 152 chemin de puybarde, Castelnau-sur-Gupie, 47180</p>
       <form id="rdvForm">
-        <input type="text" name="name" placeholder="Votre nom" required />
-        <input type="tel" name="phone" placeholder="Votre téléphone" required />
+        <input type="text" name="name" placeholder="Votre nom" required>
+        <input type="tel" name="phone" placeholder="Votre numéro de téléphone" required>
         <label for="date">Choisir un jour :</label>
-        <input type="date" name="date" id="date" required />
-        <input type="hidden" name="hour" id="appointment" required />
+        <input type="date" name="date" id="date" required>
+        <input type="hidden" name="hour" id="appointment" required>
         <div class="grid" id="slots"></div>
         <button type="submit">Réserver</button>
         <div class="success-message" id="successMsg">✅ Réservation prise en compte !</div>
       </form>
+      <div class="admin-access">
+        <input type="password" id="adminPass" placeholder="Code admin">
+        <button onclick="checkAdmin()">Admin</button>
+      </div>
     </div>
-  </div>
-
-  <button class="admin-btn" onclick="document.getElementById('adminPopup').style.display='block'">⚙️ Admin</button>
-  <div class="admin-popup" id="adminPopup">
-    <input type="password" id="adminCode" placeholder="Code">
-    <button onclick="checkAdmin()">OK</button>
   </div>
 
   <script>
     const BIN_ID = "686647098960c979a5b64e4d";
     const API_KEY = "$2a$10$YqBXzyqiaHue0./s7FwmUe5TZXvSEZ/zC9yjaWk9HLXxrH2SahHF6";
     const BIN_URL = "https://api.jsonbin.io/v3/b/" + BIN_ID;
+
     const slotDivs = [];
     const hours = ["12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"];
     const slotsContainer = document.getElementById('slots');
@@ -149,7 +162,6 @@
         div.className = 'slot';
         slotsContainer.appendChild(div);
         slotDivs.push(div);
-
         div.addEventListener('click', () => {
           if (div.classList.contains('blocked')) return;
           slotDivs.forEach(s => s.classList.remove('selected'));
@@ -162,9 +174,7 @@
     async function loadBlockedSlots() {
       const date = dateInput.value;
       if (!date) return;
-      const res = await fetch(BIN_URL + "/latest", {
-        headers: { "X-Master-Key": API_KEY }
-      });
+      const res = await fetch(BIN_URL + "/latest", { headers: { "X-Master-Key": API_KEY }});
       const json = await res.json();
       const allBookings = json.record;
       const reserved = allBookings[date] || [];
@@ -172,8 +182,16 @@
       slotDivs.forEach(slot => {
         slot.classList.remove('blocked');
         slot.classList.remove('selected');
-        if (reserved.some(e => (typeof e === 'object' && e.time === slot.textContent) || e === slot.textContent)) {
-          slot.classList.add('blocked');
+        if (Array.isArray(reserved)) {
+          if (reserved.includes(slot.textContent)) {
+            slot.classList.add('blocked');
+          }
+        } else {
+          reserved.forEach(obj => {
+            if (typeof obj === 'object' && obj.time === slot.textContent) {
+              slot.classList.add('blocked');
+            }
+          });
         }
       });
     }
@@ -187,10 +205,7 @@
       const date = dateInput.value;
       const hour = appointmentInput.value;
 
-      if (!hour) {
-        alert("Veuillez sélectionner un horaire.");
-        return;
-      }
+      if (!hour) return alert("Veuillez sélectionner un horaire.");
 
       const res = await fetch(BIN_URL + "/latest", {
         headers: { "X-Master-Key": API_KEY }
@@ -199,9 +214,16 @@
       const data = json.record;
       const reserved = data[date] || [];
 
-      if (reserved.some(e => (typeof e === 'object' && e.time === hour) || e === hour)) {
-        alert("Créneau déjà pris !");
-        return;
+      if (Array.isArray(reserved)) {
+        if (reserved.includes(hour)) {
+          alert("Créneau déjà pris !");
+          return;
+        }
+      } else {
+        if (reserved.some(r => typeof r === 'object' && r.time === hour)) {
+          alert("Créneau déjà réservé !");
+          return;
+        }
       }
 
       if (!data[date]) data[date] = [];
@@ -227,15 +249,15 @@
             window.location.href = `confirmation.html?date=${encodeURIComponent(date)}&hour=${encodeURIComponent(hour)}`;
           }, 1500);
         } else {
-          alert("Erreur lors de l'envoi.");
+          alert("Erreur lors de l'envoi. Réessaye.");
         }
       }).catch(() => {
-        alert("Erreur réseau.");
+        alert("Erreur de réseau.");
       });
     });
 
     function checkAdmin() {
-      const input = document.getElementById('adminCode').value;
+      const input = document.getElementById('adminPass').value;
       if (input === "0803") {
         window.location.href = "admin.html";
       } else {
@@ -248,9 +270,3 @@
   </script>
 </body>
 </html>
-"""
-
-# Save to file
-path = "/mnt/data/index.html"
-with open(path, "w", encoding="utf-8") as f:
-    f.write(html_code)
