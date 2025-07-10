@@ -218,6 +218,26 @@
         body: JSON.stringify(data)
       });
 
+      // Envoi du message Telegram
+      const jours = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
+      const mois = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+      const d = new Date(date);
+      const jourNom = jours[d.getDay()];
+      const jourNum = d.getDate();
+      const moisNom = mois[d.getMonth()];
+      const message = `✅ Résa ${name} – ${jourNom} ${jourNum} ${moisNom} à ${hour}\n📞 ${phone}`;
+
+      fetch("https://api.telegram.org/bot7601459714:AAFaPy-Y-I66LpBFq1ipW45mG6Lqqk31OMI/sendMessage", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          chat_id: "6103038413",
+          text: message
+        })
+      });
+
       fetch("https://formspree.io/f/xdkzjdre", {
         method: "POST",
         body: formData,
