@@ -72,6 +72,10 @@
       color: #ccc;
       margin-top: 4px;
     }
+    .slot-phone {
+      font-size: 0.75em;
+      color: #999;
+    }
     .back-button {
       display: block;
       margin: 20px auto 0;
@@ -124,11 +128,19 @@
 
         if (entry) {
           div.classList.add("blocked");
-          if (typeof entry === 'object' && entry.name) {
-            const name = document.createElement("div");
-            name.className = "slot-name";
-            name.textContent = entry.name;
-            div.appendChild(name);
+          if (typeof entry === 'object') {
+            if (entry.name) {
+              const name = document.createElement("div");
+              name.className = "slot-name";
+              name.textContent = entry.name;
+              div.appendChild(name);
+            }
+            if (entry.phone) {
+              const phone = document.createElement("div");
+              phone.className = "slot-phone";
+              phone.textContent = entry.phone;
+              div.appendChild(phone);
+            }
           }
         }
 
