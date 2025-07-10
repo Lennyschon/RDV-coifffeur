@@ -67,8 +67,12 @@
 </head>
 <body>
   <a href="index.html" style="color:#ccc; text-decoration:underline; display:block; text-align:center; margin-bottom:15px;">⬅ Retour à l'accueil</a>
-  <a href="mes-rendez-vous.html" style="position:absolute; top:20px; left:20px; background:rgba(255,255,255,0.1); padding:10px 15px; border-radius:10px; font-size:14px; color:white; text-decoration:none;">📅 Mes rendez-vous</a>
+  <a href="mes-rendez-vous.html" style="position:absolute; top:20px; left:20px; background:rgba(255,255,255,0.2); padding:14px 20px; border-radius:12px; font-size:16px; color:white; text-decoration:none; font-weight:bold;">📅 Mes rendez-vous</a>
   <div class="container">
+    <div style="position: fixed; bottom: 20px; right: 20px;">
+      <input type="password" id="adminPass" placeholder="Code admin" style="padding: 8px; border-radius: 8px; border: none; background: rgba(255,255,255,0.1); color: white; font-size: 14px;">
+      <button onclick="checkAdmin()" style="padding: 8px 12px; border-radius: 8px; background: rgba(255,255,255,0.2); color: white; border: 1px solid white; font-size: 12px;">Admin</button>
+    </div>
     <h2>Mes rendez-vous</h2>
     <input type="text" id="lastDigits" placeholder="4 derniers chiffres de votre téléphone">
     <button onclick="loadMyRDVs()">Afficher mes rendez-vous</button>
