@@ -3,43 +3,51 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Confirmation - Coiffeur</title>
+  <title>Confirmation - Lenbarber</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
       margin: 0;
-      font-family: 'Helvetica Neue', sans-serif;
-      color: white;
+      font-family: 'Poppins', sans-serif;
       background: url('image0(6).jpeg') no-repeat center center fixed;
       background-size: cover;
+      color: #333;
     }
     .overlay {
-      background: rgba(0, 0, 0, 0.75);
+      background: rgba(0, 0, 0, 0.5);
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 20px;
+      backdrop-filter: blur(6px);
     }
     .container {
-      background: rgba(255, 255, 255, 0.05);
-      padding: 30px;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 40px;
       border-radius: 20px;
-      max-width: 420px;
+      max-width: 500px;
       width: 100%;
-      backdrop-filter: blur(10px);
       text-align: center;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      animation: fadeIn 0.8s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     h2 {
-      font-weight: 300;
+      font-weight: 600;
       margin-bottom: 20px;
+      color: #222;
     }
     p {
       font-size: 16px;
       margin-bottom: 10px;
     }
     .btn {
-      background: white;
-      color: black;
+      background: #5fd100;
+      color: #fff;
       padding: 12px 20px;
       border: none;
       border-radius: 10px;
@@ -47,11 +55,14 @@
       font-weight: bold;
       cursor: pointer;
       margin-top: 20px;
-      transition: all 0.3s ease;
+      transition: background 0.3s ease, transform 0.1s;
     }
     .btn:hover {
-      background: #111;
-      color: white;
+      background: #53ba00;
+    }
+    .btn:active {
+      background: #4aa600;
+      transform: scale(0.97);
     }
   </style>
 </head>
@@ -60,8 +71,8 @@
     <div class="container">
       <h2>Merci pour votre réservation !</h2>
       <p id="recap">Votre rendez-vous a bien été enregistré.</p>
-      <p>📍 Adresse : 152 chemin de puybarde, Castelnau-sur-Gupie, 47180</p>
-      <p>🕐 Vient à l'heure, si possible sans rien dans les cheveux (gel, cire, poudre).</p>
+      <p>📍 <strong>152 chemin de puybarde, Castelnau-sur-Gupie, 47180</strong></p>
+      <p>🕐 Veuillez venir à l'heure, si possible sans produit dans les cheveux (gel, cire, poudre).</p>
       <button class="btn" onclick="window.location.href='index.html'">Retour à l'accueil</button>
     </div>
   </div>
@@ -72,7 +83,7 @@
     const hour = params.get('hour');
     if (date && hour) {
       const recap = document.getElementById('recap');
-      recap.textContent = `Votre rendez-vous est confirmé pour le ${date} à ${hour}.`;
+      recap.textContent = `✔️ Votre rendez-vous est confirmé pour le ${date} à ${hour}.`;
     }
   </script>
 </body>
