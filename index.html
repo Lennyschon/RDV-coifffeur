@@ -71,7 +71,7 @@
     }
     .grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
       gap: 10px;
     }
     .slot {
@@ -128,35 +128,6 @@
       opacity: 1;
       transform: translateY(0);
     }
-    .admin-btn {
-      position: fixed;
-      bottom: 10px;
-      right: 10px;
-      background: transparent;
-      border: none;
-      color: #fff;
-      font-size: 12px;
-      cursor: pointer;
-      opacity: 0.6;
-      transition: opacity 0.3s ease;
-    }
-    .admin-btn:hover {
-      opacity: 1;
-    }
-    .admin-popup {
-      position: fixed;
-      bottom: 40px;
-      right: 10px;
-      background: rgba(0,0,0,0.75);
-      padding: 10px;
-      border-radius: 10px;
-      display: none;
-    }
-    .admin-popup input {
-      width: 100px;
-      padding: 5px;
-      border-radius: 5px;
-    }
     .nav-link {
       position: absolute;
       top: 20px;
@@ -173,19 +144,23 @@
       background: #53ba00;
       color: white;
     }
+    @media (max-width: 600px) {
+      .container {
+        padding: 20px;
+      }
+      .grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .nav-link {
+        font-size: 14px;
+        padding: 10px 14px;
+      }
+    }
   </style>
 </head>
 <body>
-<a href="mes-rendez-vous.html" class="nav-link" style="position: fixed; top: 20px; left: 20px; z-index: 999;">Mes rendez-vous</a>
-<div id="toast" class="toast">✅ Réservation enregistrée</div>
-<script>
-  function showToast() {
-    const toast = document.getElementById("toast");
-    toast.classList.add("show");
-    setTimeout(() => toast.classList.remove("show"), 3000);
-  }
-</script>
 <a href="mes-rendez-vous.html" class="nav-link">Mes rendez-vous</a>
+<div id="toast" class="toast">✅ Réservation enregistrée</div>
 <div class="overlay">
   <div class="container">
     <h2 style="color:#5fd100; text-align:center; margin-bottom:10px;">Prendre rendez-vous</h2>
@@ -202,118 +177,105 @@
     </form>
   </div>
 </div>
-<button class="admin-btn" onclick="document.getElementById('adminPopup').style.display='block'">⚙️ Admin</button>
-<div class="admin-popup" id="adminPopup">
-  <input type="password" id="adminCode" placeholder="Code">
-  <button onclick="checkAdmin()">OK</button>
-</div>
 <script>
-  const BIN_ID = "686647098960c979a5b64e4d";
-  const API_KEY = "$2a$10$YqBXzyqiaHue0./s7FwmUe5TZXvSEZ/zC9yjaWk9HLXxrH2SahHF6";
-  const BIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+const BIN_ID = "686647098960c979a5b64e4d";
+const API_KEY = "$2a$10$YqBXzyqiaHue0./s7FwmUe5TZXvSEZ/zC9yjaWk9HLXxrH2SahHF6";
+const BIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+const hours = ["12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"];
+const slotsContainer = document.getElementById('slots');
+const appointmentInput = document.getElementById('appointment');
+const dateInput = document.getElementById('date');
+const successMsg = document.getElementById('successMsg');
 
-  const slotsContainer = document.getElementById('slots');
-  const appointmentInput = document.getElementById('appointment');
-  const dateInput = document.getElementById('date');
-  const successMsg = document.getElementById('successMsg');
+function showToast() {
+  const toast = document.getElementById("toast");
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 3000);
+}
 
-  const hours = ["12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"];
+function renderSlots(reserved) {
+  slotsContainer.innerHTML = '';
+  hours.forEach(hour => {
+    const div = document.createElement('div');
+    div.className = 'slot';
+    div.textContent = hour;
+    if (reserved.includes(hour)) {
+      div.classList.add('blocked');
+    } else {
+      div.addEventListener('click', () => {
+        document.querySelectorAll('.slot').forEach(s => s.classList.remove('selected'));
+        div.classList.add('selected');
+        appointmentInput.value = hour;
+      });
+    }
+    slotsContainer.appendChild(div);
+  });
+}
 
-  function renderSlots(reserved) {
-    slotsContainer.innerHTML = '';
-    hours.forEach(hour => {
-      const div = document.createElement('div');
-      div.className = 'slot';
-      div.textContent = hour;
-      if (reserved.includes(hour)) {
-        div.classList.add('blocked');
-      } else {
-        div.addEventListener('click', () => {
-          document.querySelectorAll('.slot').forEach(s => s.classList.remove('selected'));
-          div.classList.add('selected');
-          appointmentInput.value = hour;
-        });
-      }
-      slotsContainer.appendChild(div);
-    });
-  }
+async function loadSlots() {
+  const date = dateInput.value;
+  if (!date) return;
+  const res = await fetch(`${BIN_URL}/latest`, { headers: { "X-Master-Key": API_KEY } });
+  const json = await res.json();
+  const data = json.record;
+  const reserved = (data[date] || []).map(e => typeof e === 'object' ? e.time : e);
+  renderSlots(reserved);
+}
 
-  async function loadSlots() {
-    const date = dateInput.value;
-    if (!date) return;
-    const res = await fetch(`${BIN_URL}/latest`, {
-      headers: { "X-Master-Key": API_KEY }
-    });
-    const json = await res.json();
-    const data = json.record;
-    const reserved = (data[date] || []).map(e => typeof e === 'object' ? e.time : e);
-    renderSlots(reserved);
-  }
+document.getElementById('rdvForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const formData = new FormData(form);
+  const name = formData.get('name');
+  const phone = formData.get('phone');
+  const date = dateInput.value;
+  const hour = appointmentInput.value;
+  if (!hour) return alert("Veuillez choisir un créneau.");
 
-  document.getElementById('rdvForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const formData = new FormData(form);
-    const name = formData.get('name');
-    const phone = formData.get('phone');
-    const date = dateInput.value;
-    const hour = appointmentInput.value;
-    if (!hour) return alert("Veuillez choisir un créneau.");
+  const res = await fetch(`${BIN_URL}/latest`, { headers: { "X-Master-Key": API_KEY } });
+  const json = await res.json();
+  const data = json.record;
+  const reserved = data[date] || [];
+  if (reserved.some(e => (typeof e === 'object' ? e.time : e) === hour)) return alert("Créneau déjà réservé.");
 
-    const res = await fetch(`${BIN_URL}/latest`, { headers: { "X-Master-Key": API_KEY } });
-    const json = await res.json();
-    const data = json.record;
-    const reserved = data[date] || [];
-    if (reserved.some(e => (typeof e === 'object' ? e.time : e) === hour)) return alert("Créneau déjà réservé.");
+  if (!data[date]) data[date] = [];
+  data[date].push({ time: hour, name, phone });
 
-    if (!data[date]) data[date] = [];
-    data[date].push({ time: hour, name, phone });
-
-    await fetch(BIN_URL, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Master-Key': API_KEY
-      },
-      body: JSON.stringify(data)
-    });
-
-    const d = new Date(date);
-    const jours = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
-    const mois = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
-    const msg = `✅ Résa ${name} – ${jours[d.getDay()]} ${d.getDate()} ${mois[d.getMonth()]} à ${hour}
-📞 ${phone}`;
-
-    fetch("https://api.telegram.org/bot7601459714:AAFaPy-Y-I66LpBFq1ipW45mG6Lqqk31OMI/sendMessage", {
-      method: "POST",
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: "6103038413", text: msg })
-    });
-
-    fetch("https://formspree.io/f/xdkzjdre", {
-      method: "POST",
-      body: formData,
-      headers: { 'Accept': 'application/json' }
-    });
-
-    showToast();
-    successMsg.style.display = "block";
-    setTimeout(() => {
-      window.location.href = `confirmation.html?date=${encodeURIComponent(date)}&hour=${encodeURIComponent(hour)}`;
-    }, 1500);
+  await fetch(BIN_URL, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Master-Key': API_KEY
+    },
+    body: JSON.stringify(data)
   });
 
-  function checkAdmin() {
-    const input = document.getElementById('adminCode').value;
-    if (input === "0803") {
-      window.location.href = "admin.html";
-    } else {
-      alert("Code incorrect");
-    }
-  }
+  const d = new Date(date);
+  const jours = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+  const mois = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
+  const msg = `✅ Résa ${name} – ${jours[d.getDay()]} ${d.getDate()} ${mois[d.getMonth()]} à ${hour}\n📞 ${phone}`;
 
-  dateInput.addEventListener('change', loadSlots);
-  window.addEventListener('DOMContentLoaded', loadSlots);
+  fetch("https://api.telegram.org/bot7601459714:AAFaPy-Y-I66LpBFq1ipW45mG6Lqqk31OMI/sendMessage", {
+    method: "POST",
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_id: "6103038413", text: msg })
+  });
+
+  fetch("https://formspree.io/f/xdkzjdre", {
+    method: "POST",
+    body: formData,
+    headers: { 'Accept': 'application/json' }
+  });
+
+  showToast();
+  successMsg.style.display = "block";
+  setTimeout(() => {
+    window.location.href = `confirmation.html?date=${encodeURIComponent(date)}&hour=${encodeURIComponent(hour)}`;
+  }, 1500);
+});
+
+dateInput.addEventListener('change', loadSlots);
+window.addEventListener('DOMContentLoaded', loadSlots);
 </script>
 </body>
 </html>
