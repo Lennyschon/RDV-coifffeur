@@ -23,35 +23,51 @@
       backdrop-filter: blur(6px);
     }
     .container {
-      background: rgba(255,255,255,0.9);
+      background: rgba(255,255,255,0.92);
       padding: 40px;
-      border-radius: 20px;
+      border-radius: 24px;
       max-width: 500px;
       width: 100%;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-      border-left: 8px solid #a8e6cf;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      animation: fadeIn 0.6s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     input, button, select {
       width: 100%;
       padding: 14px;
       margin: 12px 0;
       border: 1px solid #ccc;
-      border-radius: 8px;
+      border-radius: 10px;
       font-size: 16px;
       font-family: inherit;
       background: #fff;
       color: #333;
+      transition: all 0.3s ease;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #5fd100;
+      box-shadow: 0 0 0 3px rgba(95, 209, 0, 0.2);
     }
     button {
-      background: #a8e6cf;
-      color: white;
+      background: #5fd100;
+      color: #fff;
       font-weight: 600;
       border: none;
-      transition: background 0.3s, color 0.3s;
+      transition: all 0.3s ease;
       cursor: pointer;
+      box-shadow: 0 4px 12px rgba(95, 209, 0, 0.2);
     }
     button:hover {
-      background: #81c784;
+      background: #53ba00;
+      box-shadow: 0 6px 16px rgba(83, 186, 0, 0.3);
+    }
+    button:active {
+      background: #4aa600;
+      transform: scale(0.98);
     }
     .grid {
       display: grid;
@@ -59,16 +75,23 @@
       gap: 10px;
     }
     .slot {
-      background: #e9fdf2;
+      background: #f0fff4;
       text-align: center;
-      padding: 10px;
+      padding: 12px;
       border-radius: 10px;
       cursor: pointer;
-      border: 1px solid #a8e6cf;
+      border: 1px solid #c8f9c3;
+      transition: all 0.3s ease;
+    }
+    .slot:hover {
+      background: #e0ffe5;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
     }
     .slot.selected {
-      background: #81c784;
+      background: #5fd100;
       color: #fff;
+      font-weight: bold;
     }
     .slot.blocked {
       background: #f5f5f5;
@@ -79,11 +102,31 @@
     .success-message {
       background: #d4edda;
       color: #155724;
-      padding: 10px;
+      padding: 12px;
       text-align: center;
       border-radius: 10px;
-      margin-top: 10px;
+      margin-top: 15px;
       display: none;
+      animation: fadeIn 0.4s ease;
+    }
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #5fd100;
+      color: white;
+      padding: 14px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      font-weight: 600;
+      z-index: 9999;
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
     }
     .admin-btn {
       position: fixed;
@@ -95,6 +138,10 @@
       font-size: 12px;
       cursor: pointer;
       opacity: 0.6;
+      transition: opacity 0.3s ease;
+    }
+    .admin-btn:hover {
+      opacity: 1;
     }
     .admin-popup {
       position: fixed;
@@ -114,149 +161,158 @@
       position: absolute;
       top: 20px;
       left: 20px;
-      background: #a8e6cf;
+      background: #5fd100;
       padding: 12px 18px;
       border-radius: 12px;
-      color: #333;
+      color: #fff;
       text-decoration: none;
       font-weight: 600;
+      transition: background 0.3s;
+    }
+    .nav-link:hover {
+      background: #53ba00;
+      color: white;
     }
   </style>
 </head>
 <body>
-  <a href="mes-rendez-vous.html" class="nav-link">Mes rendez-vous</a>
-
-  <div class="overlay">
-    <div class="container">
-      <h2 style="color:#81c784">Prendre rendez-vous</h2>
-      <p style="text-align:center; font-size:14px; margin-bottom:20px;">152 chemin de puybarde, Castelnau-sur-Gupie</p>
-      <form id="rdvForm">
-        <input type="text" name="name" placeholder="Votre nom" required />
-        <input type="tel" name="phone" placeholder="Votre téléphone" required />
-        <label for="date">Choisir un jour :</label>
-        <input type="date" name="date" id="date" required />
-        <input type="hidden" name="hour" id="appointment" required />
-        <div class="grid" id="slots"></div>
-        <button type="submit">Réserver</button>
-        <div class="success-message" id="successMsg">✅ Réservation confirmée !</div>
-      </form>
-    </div>
+<div id="toast" class="toast">✅ Réservation enregistrée</div>
+<script>
+  function showToast() {
+    const toast = document.getElementById("toast");
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 3000);
+  }
+</script>
+<a href="mes-rendez-vous.html" class="nav-link">Mes rendez-vous</a>
+<div class="overlay">
+  <div class="container">
+    <h2 style="color:#5fd100; text-align:center; margin-bottom:10px;">Prendre rendez-vous</h2>
+    <p style="text-align:center; font-size:14px; margin-bottom:20px;">152 chemin de puybarde, Castelnau-sur-Gupie</p>
+    <form id="rdvForm">
+      <input type="text" name="name" placeholder="Votre nom" required />
+      <input type="tel" name="phone" placeholder="Votre téléphone" required />
+      <label for="date">Choisir un jour :</label>
+      <input type="date" name="date" id="date" required />
+      <input type="hidden" name="hour" id="appointment" required />
+      <div class="grid" id="slots"></div>
+      <button type="submit">Réserver</button>
+      <div class="success-message" id="successMsg">✅ Réservation confirmée !</div>
+    </form>
   </div>
+</div>
+<button class="admin-btn" onclick="document.getElementById('adminPopup').style.display='block'">⚙️ Admin</button>
+<div class="admin-popup" id="adminPopup">
+  <input type="password" id="adminCode" placeholder="Code">
+  <button onclick="checkAdmin()">OK</button>
+</div>
+<script>
+  const BIN_ID = "686647098960c979a5b64e4d";
+  const API_KEY = "$2a$10$YqBXzyqiaHue0./s7FwmUe5TZXvSEZ/zC9yjaWk9HLXxrH2SahHF6";
+  const BIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
-  <button class="admin-btn" onclick="document.getElementById('adminPopup').style.display='block'">⚙️ Admin</button>
-  <div class="admin-popup" id="adminPopup">
-    <input type="password" id="adminCode" placeholder="Code">
-    <button onclick="checkAdmin()">OK</button>
-  </div>
+  const slotsContainer = document.getElementById('slots');
+  const appointmentInput = document.getElementById('appointment');
+  const dateInput = document.getElementById('date');
+  const successMsg = document.getElementById('successMsg');
 
-  <script>
-    const BIN_ID = "686647098960c979a5b64e4d";
-    const API_KEY = "$2a$10$YqBXzyqiaHue0./s7FwmUe5TZXvSEZ/zC9yjaWk9HLXxrH2SahHF6";
-    const BIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+  const hours = ["12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"];
 
-    const slotsContainer = document.getElementById('slots');
-    const appointmentInput = document.getElementById('appointment');
-    const dateInput = document.getElementById('date');
-    const successMsg = document.getElementById('successMsg');
+  function renderSlots(reserved) {
+    slotsContainer.innerHTML = '';
+    hours.forEach(hour => {
+      const div = document.createElement('div');
+      div.className = 'slot';
+      div.textContent = hour;
+      if (reserved.includes(hour)) {
+        div.classList.add('blocked');
+      } else {
+        div.addEventListener('click', () => {
+          document.querySelectorAll('.slot').forEach(s => s.classList.remove('selected'));
+          div.classList.add('selected');
+          appointmentInput.value = hour;
+        });
+      }
+      slotsContainer.appendChild(div);
+    });
+  }
 
-    const hours = ["12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"];
+  async function loadSlots() {
+    const date = dateInput.value;
+    if (!date) return;
+    const res = await fetch(`${BIN_URL}/latest`, {
+      headers: { "X-Master-Key": API_KEY }
+    });
+    const json = await res.json();
+    const data = json.record;
+    const reserved = (data[date] || []).map(e => typeof e === 'object' ? e.time : e);
+    renderSlots(reserved);
+  }
 
-    function renderSlots(reserved) {
-      slotsContainer.innerHTML = '';
-      hours.forEach(hour => {
-        const div = document.createElement('div');
-        div.className = 'slot';
-        div.textContent = hour;
+  document.getElementById('rdvForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+    const name = formData.get('name');
+    const phone = formData.get('phone');
+    const date = dateInput.value;
+    const hour = appointmentInput.value;
+    if (!hour) return alert("Veuillez choisir un créneau.");
 
-        if (reserved.includes(hour)) {
-          div.classList.add('blocked');
-        } else {
-          div.addEventListener('click', () => {
-            document.querySelectorAll('.slot').forEach(s => s.classList.remove('selected'));
-            div.classList.add('selected');
-            appointmentInput.value = hour;
-          });
-        }
+    const res = await fetch(`${BIN_URL}/latest`, { headers: { "X-Master-Key": API_KEY } });
+    const json = await res.json();
+    const data = json.record;
+    const reserved = data[date] || [];
+    if (reserved.some(e => (typeof e === 'object' ? e.time : e) === hour)) return alert("Créneau déjà réservé.");
 
-        slotsContainer.appendChild(div);
-      });
-    }
+    if (!data[date]) data[date] = [];
+    data[date].push({ time: hour, name, phone });
 
-    async function loadSlots() {
-      const date = dateInput.value;
-      if (!date) return;
-
-      const res = await fetch(`${BIN_URL}/latest`, {
-        headers: { "X-Master-Key": API_KEY }
-      });
-      const json = await res.json();
-      const data = json.record;
-      const reserved = (data[date] || []).map(e => typeof e === 'object' ? e.time : e);
-      renderSlots(reserved);
-    }
-
-    document.getElementById('rdvForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const form = e.target;
-      const formData = new FormData(form);
-      const name = formData.get('name');
-      const phone = formData.get('phone');
-      const date = dateInput.value;
-      const hour = appointmentInput.value;
-      if (!hour) return alert("Veuillez choisir un créneau.");
-
-      const res = await fetch(`${BIN_URL}/latest`, { headers: { "X-Master-Key": API_KEY } });
-      const json = await res.json();
-      const data = json.record;
-      const reserved = data[date] || [];
-      if (reserved.some(e => (typeof e === 'object' ? e.time : e) === hour)) return alert("Créneau déjà réservé.");
-
-      if (!data[date]) data[date] = [];
-      data[date].push({ time: hour, name, phone });
-
-      await fetch(BIN_URL, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Master-Key': API_KEY
-        },
-        body: JSON.stringify(data)
-      });
-
-      const d = new Date(date);
-      const jours = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
-      const mois = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
-      const msg = `✅ Résa ${name} – ${jours[d.getDay()]} ${d.getDate()} ${mois[d.getMonth()]} à ${hour}\n📞 ${phone}`;
-
-      fetch("https://api.telegram.org/bot7601459714:AAFaPy-Y-I66LpBFq1ipW45mG6Lqqk31OMI/sendMessage", {
-        method: "POST",
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: "6103038413", text: msg })
-      });
-
-      fetch("https://formspree.io/f/xdkzjdre", {
-        method: "POST",
-        body: formData,
-        headers: { 'Accept': 'application/json' }
-      });
-
-      successMsg.style.display = "block";
-      setTimeout(() => {
-        window.location.href = `confirmation.html?date=${encodeURIComponent(date)}&hour=${encodeURIComponent(hour)}`;
-      }, 1500);
+    await fetch(BIN_URL, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': API_KEY
+      },
+      body: JSON.stringify(data)
     });
 
-    function checkAdmin() {
-      const input = document.getElementById('adminCode').value;
-      if (input === "0803") {
-        window.location.href = "admin.html";
-      } else {
-        alert("Code incorrect");
-      }
-    }
+    const d = new Date(date);
+    const jours = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+    const mois = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
+    const msg = `✅ Résa ${name} – ${jours[d.getDay()]} ${d.getDate()} ${mois[d.getMonth()]} à ${hour}
+📞 ${phone}`;
 
-    dateInput.addEventListener('change', loadSlots);
-    window.addEventListener('DOMContentLoaded', loadSlots);
-  </script>
+    fetch("https://api.telegram.org/bot7601459714:AAFaPy-Y-I66LpBFq1ipW45mG6Lqqk31OMI/sendMessage", {
+      method: "POST",
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: "6103038413", text: msg })
+    });
+
+    fetch("https://formspree.io/f/xdkzjdre", {
+      method: "POST",
+      body: formData,
+      headers: { 'Accept': 'application/json' }
+    });
+
+    showToast();
+    successMsg.style.display = "block";
+    setTimeout(() => {
+      window.location.href = `confirmation.html?date=${encodeURIComponent(date)}&hour=${encodeURIComponent(hour)}`;
+    }, 1500);
+  });
+
+  function checkAdmin() {
+    const input = document.getElementById('adminCode').value;
+    if (input === "0803") {
+      window.location.href = "admin.html";
+    } else {
+      alert("Code incorrect");
+    }
+  }
+
+  dateInput.addEventListener('change', loadSlots);
+  window.addEventListener('DOMContentLoaded', loadSlots);
+</script>
 </body>
 </html>
