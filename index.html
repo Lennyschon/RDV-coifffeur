@@ -1,10 +1,11 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>LenBarber</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <style>
     body {
       margin: 0;
@@ -169,73 +170,40 @@
       font-weight: 600;
       transition: background 0.3s;
     }
-    .nav-link:hover {
-      background: #53ba00;
-      color: white;
-    }
-  /* ... (tout ton CSS d'origine inchangé) ... */
-
-  @media screen and (max-width: 600px) {
-    .container {
-      padding: 20px;
-      border-radius: 16px;
-      max-width: 100%;
-    }
-
-    .grid {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-    }
-
-    .nav-link {
-      font-size: 14px;
-      padding: 10px 14px;
-      top: 10px;
-      left: 10px;
-      border-radius: 10px;
-    }
-
-    h2 {
-      font-size: 20px;
-    }
-
-    p {
-      font-size: 12px;
-    }
-
-    input, button, select {
-      font-size: 14px;
-      padding: 12px;
-    }
-
-    .slot {
-      font-size: 14px;
-      padding: 10px;
-    }
-
-    .admin-btn {
-      font-size: 10px;
-    }
-
-    .toast {
-      width: calc(100% - 40px);
-      right: 20px;
-      left: 20px;
-      font-size: 14px;
-    }
-  }
   </style>
 </head>
 <body>
-<a href="mes-rendez-vous.html" class="nav-link" style="position: fixed; top: 20px; left: 20px; z-index: 999;">Mes rendez-vous</a>
+<a href="mes-rendez-vous.html" class="nav-link">Mes rendez-vous</a>
 <div id="toast" class="toast">✅ Réservation enregistrée</div>
+<div class="overlay">
+  <div class="container">
+    <h2 style="color:#5fd100; text-align:center; margin-bottom:10px;">Prendre rendez-vous</h2>
+    <p style="text-align:center; font-size:14px; margin-bottom:20px;">152 chemin de puybarde, Castelnau-sur-Gupie</p>
+    <form id="rdvForm">
+      <input type="text" name="name" placeholder="Votre nom" required />
+      <input type="tel" name="phone" placeholder="Votre téléphone" required />
+      <label for="date">Choisir un jour :</label>
+      <input type="date" name="date" id="date" required />
+      <input type="hidden" name="hour" id="appointment" required />
+      <div class="grid" id="slots"></div>
+      <button type="submit">Réserver</button>
+      <div class="success-message" id="successMsg">✅ Réservation confirmée !</div>
+    </form>
+  </div>
+</div>
+<button class="admin-btn" onclick="document.getElementById('adminPopup').style.display='block'">⚙️ Admin</button>
+<div class="admin-popup" id="adminPopup">
+  <input type="password" id="adminCode" placeholder="Code">
+  <button onclick="checkAdmin()">OK</button>
+</div>
 <script>
   function showToast() {
     const toast = document.getElementById("toast");
     toast.classList.add("show");
     setTimeout(() => toast.classList.remove("show"), 3000);
   }
-const BIN_ID = "686647098960c979a5b64e4d";
+
+  const BIN_ID = "686647098960c979a5b64e4d";
   const API_KEY = "$2a$10$YqBXzyqiaHue0./s7FwmUe5TZXvSEZ/zC9yjaWk9HLXxrH2SahHF6";
   const BIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
   const slotsContainer = document.getElementById('slots');
@@ -308,7 +276,8 @@ const BIN_ID = "686647098960c979a5b64e4d";
     const d = new Date(date);
     const jours = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
     const mois = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
-    const msg = `✅ Résa ${name} – ${jours[d.getDay()]} ${d.getDate()} ${mois[d.getMonth()]} à ${hour}\n📞 ${phone}`;
+    const msg = `✅ Résa ${name} – ${jours[d.getDay()]} ${d.getDate()} ${mois[d.getMonth()]} à ${hour}
+📞 ${phone}`;
 
     fetch("https://api.telegram.org/bot7601459714:AAFaPy-Y-I66LpBFq1ipW45mG6Lqqk31OMI/sendMessage", {
       method: "POST",
@@ -329,7 +298,6 @@ const BIN_ID = "686647098960c979a5b64e4d";
     }, 1500);
   });
 
-  // ✅ fonction checkAdmin bien définie globalement
   function checkAdmin() {
     const input = document.getElementById('adminCode').value;
     if (input === "0803") {
