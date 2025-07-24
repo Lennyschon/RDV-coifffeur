@@ -3,62 +3,58 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LenBarber - Mes Rendez-vous</title>
+  <title>Mes Rendez-vous</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
       font-family: 'Poppins', sans-serif;
       background: url('image0(6).jpeg') no-repeat center center fixed;
       background-size: cover;
-      color: #333;
       margin: 0;
-      padding: 20px;
+      color: #333;
     }
     .overlay {
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.4);
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 20px;
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(6px);
     }
     .container {
       max-width: 500px;
-      width: 100%;
-      background: rgba(255,255,255,0.9);
+      background: rgba(255,255,255,0.95);
       border-radius: 20px;
       padding: 30px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      width: 100%;
     }
     h2 {
       text-align: center;
       margin-bottom: 20px;
-      font-size: 28px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
+      font-size: 24px;
       color: #222;
     }
     input, button {
       width: 100%;
       padding: 14px;
       margin-bottom: 12px;
-      border: 1px solid #ccc;
+      border: none;
       border-radius: 10px;
       font-size: 16px;
       font-family: inherit;
     }
     input {
-      background: #fff;
+      background: #f4f4f4;
       color: #333;
     }
     button {
       background: #5fd100;
       color: white;
       font-weight: 600;
-      border: none;
-      transition: background 0.3s, transform 0.1s;
       cursor: pointer;
+      transition: background 0.3s, transform 0.1s;
     }
     button:hover {
       background: #53ba00;
@@ -71,98 +67,126 @@
       margin-top: 20px;
     }
     .rdv-item {
-      background: #e8fce8;
+      background: #f0fff4;
       padding: 12px;
-      border-radius: 10px;
       margin-bottom: 12px;
-      color: #333;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      border-radius: 10px;
+      border: 1px solid #c8f9c3;
     }
     .rdv-item button {
-      background: #e54848;
+      background: rgba(255,0,0,0.8);
       color: white;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 8px;
-      margin-top: 8px;
+      margin-top: 10px;
       font-size: 14px;
-      cursor: pointer;
-      transition: background 0.3s;
+      padding: 10px;
+      border-radius: 8px;
     }
-    .rdv-item button:hover {
-      background: #cc3c3c;
-    }
-    .nav-link {
+    .top-link {
       position: fixed;
       top: 20px;
       left: 20px;
       background: #5fd100;
-      padding: 12px 18px;
-      border-radius: 12px;
-      color: #fff;
-      text-decoration: none;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 10px;
       font-weight: 600;
-      transition: background 0.3s;
+      text-decoration: none;
       z-index: 999;
     }
-    .nav-link:hover {
+    .top-link:hover {
       background: #53ba00;
+    }
+    .admin-box {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .admin-box input {
+      width: 100px;
+      padding: 8px;
+      border-radius: 8px;
+      border: none;
+      background: rgba(255,255,255,0.9);
+      color: #333;
+    }
+    .admin-box button {
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: #5fd100;
+      color: white;
+      font-weight: 600;
     }
   </style>
 </head>
 <body>
-<a href="index.html" class="nav-link">⬅ Retour</a>
-<div class="overlay">
-  <div class="container">
-    <h2>Mes rendez-vous</h2>
-    <input type="text" id="lastDigits" placeholder="4 derniers chiffres de votre téléphone">
-    <button onclick="loadMyRDVs()">Afficher mes rendez-vous</button>
-    <div class="rdv-list" id="rdvList"></div>
+  <a href="index.html" class="top-link">⬅ Retour</a>
+  <div class="overlay">
+    <div class="container">
+      <h2>Mes rendez-vous</h2>
+      <input type="text" id="lastDigits" placeholder="4 derniers chiffres de votre téléphone">
+      <button onclick="loadMyRDVs()">Afficher mes rendez-vous</button>
+      <div class="rdv-list" id="rdvList"></div>
+    </div>
   </div>
-</div>
-<script>
-  const BIN_ID = "686647098960c979a5b64e4d";
-  const API_KEY = "$2a$10$YqBXzyqiaHue0./s7FwmUe5TZXvSEZ/zC9yjaWk9HLXxrH2SahHF6";
-  const BIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+  <div class="admin-box">
+    <input type="password" id="adminPass" placeholder="Code admin">
+    <button onclick="checkAdmin()">Admin</button>
+  </div>
+  <script>
+    const BIN_ID = "686647098960c979a5b64e4d";
+    const API_KEY = "$2a$10$YqBXzyqiaHue0./s7FwmUe5TZXvSEZ/zC9yjaWk9HLXxrH2SahHF6";
+    const BIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
-  async function loadMyRDVs() {
-    const lastDigits = document.getElementById("lastDigits").value.trim();
-    if (lastDigits.length !== 4) return alert("Merci d'entrer les 4 derniers chiffres correctement.");
+    async function loadMyRDVs() {
+      const lastDigits = document.getElementById("lastDigits").value.trim();
+      if (lastDigits.length !== 4) return alert("Merci d'entrer les 4 derniers chiffres correctement.");
 
-    const res = await fetch(BIN_URL + "/latest", { headers: { "X-Master-Key": API_KEY } });
-    const json = await res.json();
-    const data = json.record;
-    const rdvList = document.getElementById("rdvList");
-    rdvList.innerHTML = "";
+      const res = await fetch(BIN_URL + "/latest", { headers: { "X-Master-Key": API_KEY } });
+      const json = await res.json();
+      const data = json.record;
+      const rdvList = document.getElementById("rdvList");
+      rdvList.innerHTML = "";
 
-    Object.entries(data).forEach(([date, slots]) => {
-      slots.forEach((slot, index) => {
-        if (typeof slot === 'object' && slot.phone.endsWith(lastDigits)) {
-          const div = document.createElement("div");
-          div.className = "rdv-item";
-          div.innerHTML = `<strong>${date} - ${slot.time}</strong><br>${slot.name} (${slot.phone})`;
+      Object.entries(data).forEach(([date, slots]) => {
+        slots.forEach((slot, index) => {
+          if (typeof slot === 'object' && slot.phone.endsWith(lastDigits)) {
+            const div = document.createElement("div");
+            div.className = "rdv-item";
+            div.innerHTML = `<strong>${date} - ${slot.time}</strong><br>${slot.name} (${slot.phone})`;
 
-          const btn = document.createElement("button");
-          btn.textContent = "Annuler ce rendez-vous";
-          btn.onclick = async () => {
-            slots.splice(index, 1);
-            await fetch(BIN_URL, {
-              method: "PUT",
-              headers: {
-                "Content-Type": "application/json",
-                "X-Master-Key": API_KEY
-              },
-              body: JSON.stringify(data)
-            });
-            loadMyRDVs();
-          };
+            const btn = document.createElement("button");
+            btn.textContent = "Annuler ce rendez-vous";
+            btn.onclick = async () => {
+              slots.splice(index, 1);
+              await fetch(BIN_URL, {
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json",
+                  "X-Master-Key": API_KEY
+                },
+                body: JSON.stringify(data)
+              });
+              loadMyRDVs();
+            };
 
-          div.appendChild(btn);
-          rdvList.appendChild(div);
-        }
+            div.appendChild(btn);
+            rdvList.appendChild(div);
+          }
+        });
       });
-    });
-  }
-</script>
+    }
+
+    function checkAdmin() {
+      const input = document.getElementById('adminPass').value;
+      if (input === "0803") {
+        window.location.href = "admin.html";
+      } else {
+        alert("Code incorrect");
+      }
+    }
+  </script>
 </body>
 </html>
