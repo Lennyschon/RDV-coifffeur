@@ -3,215 +3,173 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin - LenBarber</title>
+  <title>Mes Rendez-vous</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
       font-family: 'Poppins', sans-serif;
-      margin: 0;
       background: url('image0(6).jpeg') no-repeat center center fixed;
       background-size: cover;
       color: #333;
+      margin: 0;
+      padding: 20px;
     }
     .overlay {
-      background: rgba(0, 0, 0, 0.5);
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 20px;
+      background: rgba(0, 0, 0, 0.4);
       backdrop-filter: blur(6px);
     }
-    .calendar-container {
-      background: rgba(255,255,255,0.95);
-      padding: 40px;
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: rgba(255,255,255,0.9);
       border-radius: 20px;
-      max-width: 1000px;
-      width: 100%;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      padding: 30px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
     }
     h2 {
       text-align: center;
-      margin-bottom: 30px;
+      margin-bottom: 20px;
+      font-size: 26px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #222;
     }
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 30px;
-    }
-    .controls button, .back-button {
-      background: #5fd100;
-      color: white;
-      border: none;
-      padding: 12px 18px;
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 12px;
+      border: 1px solid #ccc;
       border-radius: 10px;
+      font-size: 16px;
+      font-family: inherit;
+    }
+    input {
+      background: #f9f9f9;
+    }
+    button {
+      background: #5fd100;
+      color: #fff;
       font-weight: 600;
+      border: none;
       cursor: pointer;
       transition: background 0.3s, transform 0.1s;
     }
-    .controls button:hover, .back-button:hover {
+    button:hover {
       background: #53ba00;
     }
-    .controls button:active, .back-button:active {
-      transform: scale(0.97);
+    button:active {
+      background: #4aa600;
+      transform: scale(0.98);
     }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
+    .rdv-list {
+      margin-top: 20px;
     }
-    .slot {
+    .rdv-item {
       background: #f0fff4;
-      text-align: center;
-      padding: 20px;
-      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      border-radius: 10px;
       border: 1px solid #c8f9c3;
-      font-size: 18px;
+    }
+    .rdv-item button {
+      background: #d90429;
+      color: white;
+      margin-top: 10px;
+      font-size: 14px;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
       cursor: pointer;
-      transition: all 0.3s ease;
     }
-    .slot:hover {
-      background: #d6f8d6;
+    .nav-link {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: #5fd100;
+      padding: 12px 18px;
+      border-radius: 12px;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      transition: background 0.3s;
     }
-    .slot.blocked {
-      background: #f5f5f5;
-      color: #999;
-      border: 1px solid #ccc;
-      cursor: not-allowed;
-    }
-    .slot-name {
-      font-size: 0.9em;
-      color: #555;
-      margin-top: 6px;
-    }
-    .slot-phone {
-      font-size: 0.85em;
-      color: #888;
-    }
-    .back-button {
-      margin: 30px auto 0;
-      display: block;
-      text-align: center;
+    .nav-link:hover {
+      background: #53ba00;
     }
   </style>
 </head>
 <body>
+  <a href="index.html" class="nav-link">⬅ Retour à l'accueil</a>
   <div class="overlay">
-    <div class="calendar-container">
-      <h2 id="dateTitle">Calendrier administrateur</h2>
-      <div class="controls">
-        <button onclick="changeDay(-1)">⬅️ Précédent</button>
-        <button onclick="changeDay(1)">Suivant ➡️</button>
-        <button onclick="clearDay()">🗑️ Supprimer tous les créneaux du jour</button>
-      </div>
-      <div class="grid" id="slots"></div>
-      <button class="back-button" onclick="window.location.href='index.html'">⬅ Retour</button>
+    <div class="container">
+      <h2>Mes rendez-vous</h2>
+      <input type="text" id="lastDigits" placeholder="4 derniers chiffres de votre téléphone">
+      <button onclick="loadMyRDVs()">Afficher mes rendez-vous</button>
+      <div class="rdv-list" id="rdvList"></div>
+<div id="toast" style="display:none; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #5fd100; color: white; padding: 12px 20px; border-radius: 10px; font-weight: bold; box-shadow: 0 2px 10px rgba(0,0,0,0.2); z-index: 1000;">✔️ Rendez-vous annulé</div>
     </div>
   </div>
-
   <script>
     const BIN_ID = "686647098960c979a5b64e4d";
     const API_KEY = "$2a$10$YqBXzyqiaHue0./s7FwmUe5TZXvSEZ/zC9yjaWk9HLXxrH2SahHF6";
     const BIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
-    const hours = ["12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"];
 
-    let currentDate = new Date();
+    async function loadMyRDVs() {
+      const lastDigits = document.getElementById("lastDigits").value.trim();
+      if (lastDigits.length !== 4) return alert("Merci d'entrer les 4 derniers chiffres correctement.");
 
-    function formatDate(date) {
-      return date.toISOString().split("T")[0];
-    }
-
-    function updateTitle(date) {
-      return date.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-    }
-
-    async function loadSlots() {
-      const dateStr = formatDate(currentDate);
-      document.getElementById("dateTitle").innerText = updateTitle(currentDate);
       const res = await fetch(BIN_URL + "/latest", { headers: { "X-Master-Key": API_KEY } });
       const json = await res.json();
       const data = json.record;
-      const dayData = data[dateStr] || [];
-      const slotsContainer = document.getElementById("slots");
-      slotsContainer.innerHTML = "";
+      const rdvList = document.getElementById("rdvList");
+      rdvList.innerHTML = "";
 
-      hours.forEach(hour => {
-        const div = document.createElement("div");
-        div.className = "slot";
-        const entry = dayData.find(d => typeof d === 'object' ? d.time === hour : d === hour);
-        div.textContent = hour;
+      Object.entries(data).forEach(([date, slots]) => {
+        slots.forEach((slot, index) => {
+          if (typeof slot === 'object' && slot.phone.endsWith(lastDigits)) {
+            const div = document.createElement("div");
+            div.className = "rdv-item";
+            div.innerHTML = `<strong>${date} - ${slot.time}</strong><br>${slot.name} (${slot.phone})`;
 
-        if (entry) {
-          div.classList.add("blocked");
-          if (typeof entry === 'object') {
-            if (entry.name) {
-              const name = document.createElement("div");
-              name.className = "slot-name";
-              name.textContent = entry.name;
-              div.appendChild(name);
-            }
-            if (entry.phone) {
-              const phone = document.createElement("div");
-              phone.className = "slot-phone";
-              phone.textContent = entry.phone;
-              div.appendChild(phone);
-            }
+            const btn = document.createElement("button");
+            btn.textContent = "Annuler ce rendez-vous";
+            btn.onclick = async () => {
+  slots.splice(index, 1);
+  await fetch(BIN_URL, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Master-Key": API_KEY
+    },
+    body: JSON.stringify(data)
+  });
+  showToast();
+  loadMyRDVs();
+},
+                body: JSON.stringify(data)
+              });
+              loadMyRDVs();
+            };
+
+            div.appendChild(btn);
+            rdvList.appendChild(div);
           }
-        }
-
-        div.addEventListener("click", async () => {
-          let updated = [...(data[dateStr] || [])];
-          const idx = updated.findIndex(e => (typeof e === 'object' && e.time === hour) || e === hour);
-
-          if (idx > -1) {
-            updated.splice(idx, 1);
-          } else {
-            updated.push(hour);
-          }
-
-          data[dateStr] = updated;
-          await fetch(BIN_URL, {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Master-Key": API_KEY
-            },
-            body: JSON.stringify(data)
-          });
-          loadSlots();
         });
-
-        slotsContainer.appendChild(div);
       });
     }
+  function showToast() {
+  const toast = document.getElementById("toast");
+  toast.style.display = "block";
+  setTimeout(() => {
+    toast.style.display = "none";
+  }, 2000);
+}
 
-    function changeDay(n) {
-      currentDate.setDate(currentDate.getDate() + n);
-      loadSlots();
-    }
-
-    async function clearDay() {
-      const dateStr = formatDate(currentDate);
-      const res = await fetch(BIN_URL + "/latest", { headers: { "X-Master-Key": API_KEY } });
-      const json = await res.json();
-      const data = json.record;
-      delete data[dateStr];
-
-      await fetch(BIN_URL, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Master-Key": API_KEY
-        },
-        body: JSON.stringify(data)
-      });
-
-      loadSlots();
-    }
-
-    loadSlots();
-  </script>
+</script>
 </body>
 </html>
