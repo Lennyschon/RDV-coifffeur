@@ -3,81 +3,87 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Page admin - Calendrier</title>
+  <title>Admin - Calendrier</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: 'Helvetica Neue', sans-serif;
-      background: #0e0e0e;
-      color: white;
       margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: #0b0b0b;
+      color: white;
       padding: 20px;
     }
     h2 {
       text-align: center;
+      font-size: 28px;
       margin-bottom: 20px;
     }
     .calendar-container {
       max-width: 1000px;
       margin: 0 auto;
       background: rgba(255, 255, 255, 0.05);
-      padding: 20px;
+      padding: 25px;
       border-radius: 20px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.9);
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
       backdrop-filter: blur(10px);
     }
     .controls {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 25px;
     }
     .controls button, .back-button {
-      background: white;
-      color: black;
+      background: #5fd100;
+      color: white;
       border: none;
-      padding: 10px 20px;
-      margin: 5px;
-      border-radius: 10px;
-      font-weight: bold;
+      padding: 12px 20px;
+      margin: 8px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 16px;
       cursor: pointer;
+      transition: background 0.3s ease, transform 0.1s;
     }
     .controls button:hover, .back-button:hover {
-      background: #333;
-      color: white;
+      background: #4cbc00;
+    }
+    .controls button:active, .back-button:active {
+      transform: scale(0.96);
     }
     .grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
       gap: 20px;
-      padding-bottom: 10px;
     }
     .slot {
+      background: rgba(0, 128, 0, 0.4);
       padding: 20px;
+      border-radius: 14px;
       text-align: center;
-      border-radius: 12px;
-      background: rgba(0, 128, 0, 0.5);
-      color: white;
-      cursor: pointer;
       font-size: 18px;
+      position: relative;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .slot:hover:not(.blocked) {
+      background: rgba(0, 128, 0, 0.7);
     }
     .slot.blocked {
       background: rgba(255, 0, 0, 0.5);
       cursor: not-allowed;
-      opacity: 0.8;
-    }
-    .slot:hover:not(.blocked) {
-      background: rgba(0, 128, 0, 0.8);
+      opacity: 0.85;
     }
     .slot-name {
-      font-size: 0.9em;
+      font-size: 14px;
       color: #ccc;
-      margin-top: 6px;
+      margin-top: 8px;
     }
     .slot-phone {
-      font-size: 0.85em;
+      font-size: 13px;
       color: #999;
     }
     .back-button {
       display: block;
-      margin: 20px auto 0;
+      margin: 30px auto 0;
       text-align: center;
     }
   </style>
@@ -88,16 +94,16 @@
     <div class="controls">
       <button onclick="changeDay(-1)">⬅️ Précédent</button>
       <button onclick="changeDay(1)">Suivant ➡️</button>
-      <button onclick="clearDay()">🗑️ Supprimer tous les créneaux du jour</button>
+      <button onclick="clearDay()">🗑️ Supprimer tous les créneaux</button>
     </div>
     <div class="grid" id="slots"></div>
-    <button class="back-button" onclick="window.location.href='index.html'">⬅ Retour</button>
+    <button class="back-button" onclick="window.location.href='index.html'">⬅ Retour à l'accueil</button>
   </div>
 
   <script>
     const BIN_ID = "686647098960c979a5b64e4d";
     const API_KEY = "$2a$10$YqBXzyqiaHue0./s7FwmUe5TZXvSEZ/zC9yjaWk9HLXxrH2SahHF6";
-    const BIN_URL = https://api.jsonbin.io/v3/b/${BIN_ID};
+    const BIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
     const hours = ["12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"];
 
     let currentDate = new Date();
@@ -107,27 +113,34 @@
     }
 
     function updateTitle(date) {
-      return date.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      document.getElementById("dateTitle").innerText =
+        date.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     }
 
     async function loadSlots() {
       const dateStr = formatDate(currentDate);
-      document.getElementById("dateTitle").innerText = updateTitle(currentDate);
-      const res = await fetch(BIN_URL + "/latest", { headers: { "X-Master-Key": API_KEY } });
+      updateTitle(currentDate);
+
+      const res = await fetch(BIN_URL + "/latest", {
+        headers: { "X-Master-Key": API_KEY }
+      });
       const json = await res.json();
       const data = json.record;
       const dayData = data[dateStr] || [];
+
       const slotsContainer = document.getElementById("slots");
       slotsContainer.innerHTML = "";
 
       hours.forEach(hour => {
         const div = document.createElement("div");
         div.className = "slot";
-        const entry = dayData.find(d => typeof d === 'object' ? d.time === hour : d === hour);
         div.textContent = hour;
+
+        const entry = dayData.find(d => typeof d === 'object' ? d.time === hour : d === hour);
 
         if (entry) {
           div.classList.add("blocked");
+
           if (typeof entry === 'object') {
             if (entry.name) {
               const name = document.createElement("div");
@@ -155,6 +168,7 @@
           }
 
           data[dateStr] = updated;
+
           await fetch(BIN_URL, {
             method: "PUT",
             headers: {
@@ -163,6 +177,7 @@
             },
             body: JSON.stringify(data)
           });
+
           loadSlots();
         });
 
@@ -177,9 +192,12 @@
 
     async function clearDay() {
       const dateStr = formatDate(currentDate);
-      const res = await fetch(BIN_URL + "/latest", { headers: { "X-Master-Key": API_KEY } });
+      const res = await fetch(BIN_URL + "/latest", {
+        headers: { "X-Master-Key": API_KEY }
+      });
       const json = await res.json();
       const data = json.record;
+
       delete data[dateStr];
 
       await fetch(BIN_URL, {
