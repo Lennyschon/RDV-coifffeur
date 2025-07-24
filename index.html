@@ -310,8 +310,10 @@
     const hour = appointmentInput.value;
     if (!hour) return alert("Veuillez choisir un créneau.");
 
-    const res = await fetch(`${BIN_URL}/latest`, 
-    const json = await res.json();
+  const res = await fetch(`${BIN_URL}/latest`, {
+  headers: { "X-Master-Key": API_KEY }
+});
+const json = await res.json();
     const data = json.record;
     const reserved = data[date] || [];
     if (reserved.some(e => (typeof e === 'object' ? e.time : e) === hour)) return alert("Créneau déjà réservé.");
@@ -331,8 +333,8 @@
     const d = new Date(date);
     const jours = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
     const mois = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
-    const msg = ✅ Résa ${name} – ${jours[d.getDay()]} ${d.getDate()} ${mois[d.getMonth()]} à ${hour}
-📞 ${phone};
+    const msg = `✅ Résa ${name} – ${jours[d.getDay()]} ${d.getDate()} ${mois[d.getMonth()]} à ${hour}
+📞 ${phone}`;
 
     fetch("https://api.telegram.org/bot7601459714:AAFaPy-Y-I66LpBFq1ipW45mG6Lqqk31OMI/sendMessage", {
       method: "POST",
