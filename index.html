@@ -179,6 +179,11 @@
     const slotsContainer = document.getElementById('slots');
     const appointmentInput = document.getElementById('appointment');
     const dateInput = document.getElementById('date');
+
+// Bloquer le jour même dans le calendrier
+const today = new Date();
+today.setDate(today.getDate() + 1);
+dateInput.min = today.toISOString().split("T")[0];
     const successMsg = document.getElementById('successMsg');
     const hours = ["12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"];
 
