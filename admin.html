@@ -3,103 +3,198 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Confirmation - Lenbarber</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <title>Page admin - Calendrier</title>
   <style>
     body {
+      font-family: 'Helvetica Neue', sans-serif;
+      background: #0e0e0e;
+      color: white;
       margin: 0;
-      font-family: 'Poppins', sans-serif;
-      background: url('image0(6).jpeg') no-repeat center center fixed;
-      background-size: cover;
-      color: #333;
-    }
-    .overlay {
-      background: rgba(0, 0, 0, 0.5);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       padding: 20px;
-      backdrop-filter: blur(6px);
-    }
-    .container {
-      background: rgba(255, 255, 255, 0.95);
-      padding: 40px;
-      border-radius: 20px;
-      max-width: 500px;
-      width: 100%;
-      text-align: center;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-      animation: fadeIn 0.8s ease;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
     }
     h2 {
-      font-weight: 600;
+      text-align: center;
       margin-bottom: 20px;
-      color: #222;
     }
-    p {
-      font-size: 16px;
-      margin-bottom: 10px;
+    .calendar-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.9);
+      backdrop-filter: blur(10px);
     }
-    .btn {
-      background: #5fd100;
-      color: #fff;
-      padding: 12px 20px;
+    .controls {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .controls button, .back-button {
+      background: white;
+      color: black;
       border: none;
+      padding: 10px 20px;
+      margin: 5px;
       border-radius: 10px;
-      font-size: 16px;
       font-weight: bold;
       cursor: pointer;
-      margin-top: 20px;
-      transition: background 0.3s ease, transform 0.1s;
     }
-    .btn:hover {
-      background: #53ba00;
+    .controls button:hover, .back-button:hover {
+      background: #333;
+      color: white;
     }
-    .btn:active {
-      background: #4aa600;
-      transform: scale(0.97);
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      padding-bottom: 10px;
+    }
+    .slot {
+      padding: 20px;
+      text-align: center;
+      border-radius: 12px;
+      background: rgba(0, 128, 0, 0.5);
+      color: white;
+      cursor: pointer;
+      font-size: 18px;
+    }
+    .slot.blocked {
+      background: rgba(255, 0, 0, 0.5);
+      cursor: not-allowed;
+      opacity: 0.8;
+    }
+    .slot:hover:not(.blocked) {
+      background: rgba(0, 128, 0, 0.8);
+    }
+    .slot-name {
+      font-size: 0.9em;
+      color: #ccc;
+      margin-top: 6px;
+    }
+    .slot-phone {
+      font-size: 0.85em;
+      color: #999;
+    }
+    .back-button {
+      display: block;
+      margin: 20px auto 0;
+      text-align: center;
     }
   </style>
 </head>
 <body>
-  <div class="overlay">
-    <div class="container">
-      <h2>Merci pour votre réservation !</h2>
-      <p id="recap">Votre rendez-vous a bien été enregistré.</p>
-      <p>📍 <strong>152 chemin de puybarde, Castelnau-sur-Gupie, 47180</strong></p>
-      <p>🕐 Veuillez venir à l'heure, si possible sans produit dans les cheveux (gel, cire, poudre).</p>
-      <button class="btn" onclick="window.location.href='index.html'">Retour à l'accueil</button>
+  <div class="calendar-container">
+    <h2 id="dateTitle">Calendrier administrateur</h2>
+    <div class="controls">
+      <button onclick="changeDay(-1)">⬅️ Précédent</button>
+      <button onclick="changeDay(1)">Suivant ➡️</button>
+      <button onclick="clearDay()">🗑️ Supprimer tous les créneaux du jour</button>
     </div>
+    <div class="grid" id="slots"></div>
+    <button class="back-button" onclick="window.location.href='index.html'">⬅ Retour</button>
   </div>
 
   <script>
-    const params = new URLSearchParams(window.location.search);
-    const date = params.get('date');
-    const hour = params.get('hour');
-    if (date && hour) {
-      const recap = document.getElementById('recap');
-      recap.textContent = `✔️ Votre rendez-vous est confirmé pour le ${date} à ${hour}.`;
-    }
-  </script>
-<div style="position: fixed; bottom: 20px; right: 20px;">
-  <input type="password" id="adminPass" placeholder="Code admin" style="padding: 8px; border-radius: 8px; border: none; background: rgba(255,255,255,0.1); color: white; font-size: 14px;">
-  <button onclick="checkAdmin()" style="padding: 8px 12px; border-radius: 8px; background: #5fd100; color: white; border: none; font-size: 12px; font-weight: bold; cursor: pointer;">Admin</button>
-</div>
+    const BIN_ID = "686647098960c979a5b64e4d";
+    const API_KEY = "$2a$10$YqBXzyqiaHue0./s7FwmUe5TZXvSEZ/zC9yjaWk9HLXxrH2SahHF6";
+    const BIN_URL = https://api.jsonbin.io/v3/b/${BIN_ID};
+    const hours = ["12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"];
 
-<script>
-function checkAdmin() {
-  const pass = document.getElementById("adminPass").value;
-  if (pass === "0803") {
-    window.location.href = "confirmation.html";
-  } else {
-    alert("Code incorrect");
-  }
-}
-</script>
+    let currentDate = new Date();
+
+    function formatDate(date) {
+      return date.toISOString().split("T")[0];
+    }
+
+    function updateTitle(date) {
+      return date.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    async function loadSlots() {
+      const dateStr = formatDate(currentDate);
+      document.getElementById("dateTitle").innerText = updateTitle(currentDate);
+      const res = await fetch(BIN_URL + "/latest", { headers: { "X-Master-Key": API_KEY } });
+      const json = await res.json();
+      const data = json.record;
+      const dayData = data[dateStr] || [];
+      const slotsContainer = document.getElementById("slots");
+      slotsContainer.innerHTML = "";
+
+      hours.forEach(hour => {
+        const div = document.createElement("div");
+        div.className = "slot";
+        const entry = dayData.find(d => typeof d === 'object' ? d.time === hour : d === hour);
+        div.textContent = hour;
+
+        if (entry) {
+          div.classList.add("blocked");
+          if (typeof entry === 'object') {
+            if (entry.name) {
+              const name = document.createElement("div");
+              name.className = "slot-name";
+              name.textContent = entry.name;
+              div.appendChild(name);
+            }
+            if (entry.phone) {
+              const phone = document.createElement("div");
+              phone.className = "slot-phone";
+              phone.textContent = entry.phone;
+              div.appendChild(phone);
+            }
+          }
+        }
+
+        div.addEventListener("click", async () => {
+          let updated = [...(data[dateStr] || [])];
+          const idx = updated.findIndex(e => (typeof e === 'object' && e.time === hour) || e === hour);
+
+          if (idx > -1) {
+            updated.splice(idx, 1);
+          } else {
+            updated.push(hour);
+          }
+
+          data[dateStr] = updated;
+          await fetch(BIN_URL, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Master-Key": API_KEY
+            },
+            body: JSON.stringify(data)
+          });
+          loadSlots();
+        });
+
+        slotsContainer.appendChild(div);
+      });
+    }
+
+    function changeDay(n) {
+      currentDate.setDate(currentDate.getDate() + n);
+      loadSlots();
+    }
+
+    async function clearDay() {
+      const dateStr = formatDate(currentDate);
+      const res = await fetch(BIN_URL + "/latest", { headers: { "X-Master-Key": API_KEY } });
+      const json = await res.json();
+      const data = json.record;
+      delete data[dateStr];
+
+      await fetch(BIN_URL, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Master-Key": API_KEY
+        },
+        body: JSON.stringify(data)
+      });
+
+      loadSlots();
+    }
+
+    loadSlots();
+  </script>
 </body>
 </html>
