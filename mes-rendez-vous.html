@@ -3,22 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mes Rendez-vous</title>
+  <title>LenBarber - Mes Rendez-vous</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: 'Helvetica Neue', sans-serif;
-      background: #0e0e0e;
-      color: white;
+      font-family: 'Poppins', sans-serif;
+      background: url('image0(6).jpeg') no-repeat center center fixed;
+      background-size: cover;
+      color: #333;
       margin: 0;
       padding: 20px;
     }
+    .overlay {
+      background: rgba(0, 0, 0, 0.5);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      backdrop-filter: blur(8px);
+    }
     .container {
       max-width: 500px;
-      margin: auto;
-      background: rgba(255,255,255,0.05);
+      width: 100%;
+      background: rgba(255,255,255,0.9);
       border-radius: 20px;
-      padding: 20px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.8);
+      padding: 30px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
     }
     h2 {
       text-align: center;
@@ -26,102 +37,132 @@
       font-size: 28px;
       text-transform: uppercase;
       letter-spacing: 1px;
-      background: linear-gradient(45deg, #ffffff, #aaaaaa);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      color: #222;
     }
     input, button {
       width: 100%;
-      padding: 12px;
-      margin-bottom: 10px;
-      border: none;
+      padding: 14px;
+      margin-bottom: 12px;
+      border: 1px solid #ccc;
       border-radius: 10px;
       font-size: 16px;
+      font-family: inherit;
     }
     input {
-      background: rgba(255,255,255,0.1);
-      color: white;
+      background: #fff;
+      color: #333;
     }
     button {
-      background: white;
-      color: black;
-      font-weight: bold;
+      background: #5fd100;
+      color: white;
+      font-weight: 600;
+      border: none;
+      transition: background 0.3s, transform 0.1s;
       cursor: pointer;
+    }
+    button:hover {
+      background: #53ba00;
+    }
+    button:active {
+      background: #4aa600;
+      transform: scale(0.98);
     }
     .rdv-list {
       margin-top: 20px;
     }
     .rdv-item {
-      background: rgba(0, 128, 0, 0.3);
-      padding: 10px;
-      margin-bottom: 10px;
+      background: #e8fce8;
+      padding: 12px;
       border-radius: 10px;
+      margin-bottom: 12px;
+      color: #333;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     }
     .rdv-item button {
-      background: rgba(255,0,0,0.8);
+      background: #e54848;
       color: white;
-      margin-top: 10px;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      margin-top: 8px;
       font-size: 14px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .rdv-item button:hover {
+      background: #cc3c3c;
+    }
+    .nav-link {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: #5fd100;
+      padding: 12px 18px;
+      border-radius: 12px;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      transition: background 0.3s;
+      z-index: 999;
+    }
+    .nav-link:hover {
+      background: #53ba00;
     }
   </style>
 </head>
 <body>
-  <a href="index.html" style="color:#ccc; text-decoration:underline; display:block; text-align:center; margin-bottom:15px;">⬅ Retour à l'accueil</a>
-  <a href="mes-rendez-vous.html" style="position:absolute; top:20px; left:20px; background:rgba(255,255,255,0.2); padding:14px 20px; border-radius:12px; font-size:16px; color:white; text-decoration:none; font-weight:bold;">📅 Mes rendez-vous</a>
+<a href="index.html" class="nav-link">⬅ Retour</a>
+<div class="overlay">
   <div class="container">
-    <div style="position: fixed; bottom: 20px; right: 20px;">
-      <input type="password" id="adminPass" placeholder="Code admin" style="padding: 8px; border-radius: 8px; border: none; background: rgba(255,255,255,0.1); color: white; font-size: 14px;">
-      <button onclick="checkAdmin()" style="padding: 8px 12px; border-radius: 8px; background: rgba(255,255,255,0.2); color: white; border: 1px solid white; font-size: 12px;">Admin</button>
-    </div>
     <h2>Mes rendez-vous</h2>
     <input type="text" id="lastDigits" placeholder="4 derniers chiffres de votre téléphone">
     <button onclick="loadMyRDVs()">Afficher mes rendez-vous</button>
     <div class="rdv-list" id="rdvList"></div>
   </div>
+</div>
+<script>
+  const BIN_ID = "686647098960c979a5b64e4d";
+  const API_KEY = "$2a$10$YqBXzyqiaHue0./s7FwmUe5TZXvSEZ/zC9yjaWk9HLXxrH2SahHF6";
+  const BIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
-  <script>
-    const BIN_ID = "686647098960c979a5b64e4d";
-    const API_KEY = "$2a$10$YqBXzyqiaHue0./s7FwmUe5TZXvSEZ/zC9yjaWk9HLXxrH2SahHF6";
-    const BIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+  async function loadMyRDVs() {
+    const lastDigits = document.getElementById("lastDigits").value.trim();
+    if (lastDigits.length !== 4) return alert("Merci d'entrer les 4 derniers chiffres correctement.");
 
-    async function loadMyRDVs() {
-      const lastDigits = document.getElementById("lastDigits").value.trim();
-      if (lastDigits.length !== 4) return alert("Merci d'entrer les 4 derniers chiffres correctement.");
+    const res = await fetch(BIN_URL + "/latest", { headers: { "X-Master-Key": API_KEY } });
+    const json = await res.json();
+    const data = json.record;
+    const rdvList = document.getElementById("rdvList");
+    rdvList.innerHTML = "";
 
-      const res = await fetch(BIN_URL + "/latest", { headers: { "X-Master-Key": API_KEY } });
-      const json = await res.json();
-      const data = json.record;
-      const rdvList = document.getElementById("rdvList");
-      rdvList.innerHTML = "";
+    Object.entries(data).forEach(([date, slots]) => {
+      slots.forEach((slot, index) => {
+        if (typeof slot === 'object' && slot.phone.endsWith(lastDigits)) {
+          const div = document.createElement("div");
+          div.className = "rdv-item";
+          div.innerHTML = `<strong>${date} - ${slot.time}</strong><br>${slot.name} (${slot.phone})`;
 
-      Object.entries(data).forEach(([date, slots]) => {
-        slots.forEach((slot, index) => {
-          if (typeof slot === 'object' && slot.phone.endsWith(lastDigits)) {
-            const div = document.createElement("div");
-            div.className = "rdv-item";
-            div.innerHTML = `<strong>${date} - ${slot.time}</strong><br>${slot.name} (${slot.phone})`;
+          const btn = document.createElement("button");
+          btn.textContent = "Annuler ce rendez-vous";
+          btn.onclick = async () => {
+            slots.splice(index, 1);
+            await fetch(BIN_URL, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                "X-Master-Key": API_KEY
+              },
+              body: JSON.stringify(data)
+            });
+            loadMyRDVs();
+          };
 
-            const btn = document.createElement("button");
-            btn.textContent = "Annuler ce rendez-vous";
-            btn.onclick = async () => {
-              slots.splice(index, 1);
-              await fetch(BIN_URL, {
-                method: "PUT",
-                headers: {
-                  "Content-Type": "application/json",
-                  "X-Master-Key": API_KEY
-                },
-                body: JSON.stringify(data)
-              });
-              loadMyRDVs();
-            };
-
-            div.appendChild(btn);
-            rdvList.appendChild(div);
-          }
-        });
+          div.appendChild(btn);
+          rdvList.appendChild(div);
+        }
       });
-    }
-  </script>
+    });
+  }
+</script>
 </body>
 </html>
