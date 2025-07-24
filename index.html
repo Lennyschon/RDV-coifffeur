@@ -10,7 +10,8 @@
       margin: 0;
       font-family: 'Poppins', sans-serif;
       color: #333;
-      background: #fafafa;
+      background: url('image0(6).jpeg') no-repeat center center fixed;
+      background-size: cover;
     }
     .overlay {
       min-height: 100vh;
@@ -18,14 +19,17 @@
       align-items: center;
       justify-content: center;
       padding: 20px;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(6px);
     }
     .container {
-      background: rgba(255,255,255,0.95);
+      background: rgba(255,255,255,0.9);
       padding: 40px;
       border-radius: 20px;
       max-width: 500px;
       width: 100%;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      border-left: 8px solid #2ecc71;
     }
     input, button, select {
       width: 100%;
@@ -39,16 +43,15 @@
       color: #333;
     }
     button {
-      background: #fff;
-      color: #333;
+      background: #2ecc71;
+      color: white;
       font-weight: 600;
-      border: 1px solid #333;
+      border: none;
       transition: background 0.3s, color 0.3s;
       cursor: pointer;
     }
     button:hover {
-      background: #333;
-      color: #fff;
+      background: #27ae60;
     }
     .grid {
       display: grid;
@@ -56,20 +59,22 @@
       gap: 10px;
     }
     .slot {
-      background: #eaeaea;
+      background: #eafaf1;
       text-align: center;
       padding: 10px;
       border-radius: 10px;
       cursor: pointer;
+      border: 1px solid #2ecc71;
     }
     .slot.selected {
-      background: #333;
+      background: #2ecc71;
       color: #fff;
     }
     .slot.blocked {
       background: #f5f5f5;
       color: #999;
       pointer-events: none;
+      border: 1px solid #ccc;
     }
     .success-message {
       background: #d4edda;
@@ -80,14 +85,39 @@
       margin-top: 10px;
       display: none;
     }
+    .admin-btn {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 12px;
+      cursor: pointer;
+      opacity: 0.6;
+    }
+    .admin-popup {
+      position: fixed;
+      bottom: 40px;
+      right: 10px;
+      background: rgba(0,0,0,0.75);
+      padding: 10px;
+      border-radius: 10px;
+      display: none;
+    }
+    .admin-popup input {
+      width: 100px;
+      padding: 5px;
+      border-radius: 5px;
+    }
   </style>
 </head>
 <body>
-  <a href="mes-rendez-vous.html" style="position:absolute; top:20px; left:20px; background:#fff; padding:12px 18px; border-radius:12px; color:#333; text-decoration:none; font-weight:600;">Mes rendez-vous</a>
+  <a href="mes-rendez-vous.html" style="position:absolute; top:20px; left:20px; background:#2ecc71; padding:12px 18px; border-radius:12px; color:#fff; text-decoration:none; font-weight:600;">Mes rendez-vous</a>
 
   <div class="overlay">
     <div class="container">
-      <h2>Prendre rendez-vous</h2>
+      <h2 style="color:#2ecc71">Prendre rendez-vous</h2>
       <p style="text-align:center; font-size:14px; margin-bottom:20px;">152 chemin de puybarde, Castelnau-sur-Gupie</p>
       <form id="rdvForm">
         <input type="text" name="name" placeholder="Votre nom" required />
@@ -100,6 +130,12 @@
         <div class="success-message" id="successMsg">✅ Réservation confirmée !</div>
       </form>
     </div>
+  </div>
+
+  <button class="admin-btn" onclick="document.getElementById('adminPopup').style.display='block'">⚙️ Admin</button>
+  <div class="admin-popup" id="adminPopup">
+    <input type="password" id="adminCode" placeholder="Code">
+    <button onclick="checkAdmin()">OK</button>
   </div>
 
   <script>
@@ -198,6 +234,15 @@
         window.location.href = `confirmation.html?date=${encodeURIComponent(date)}&hour=${encodeURIComponent(hour)}`;
       }, 1500);
     });
+
+    function checkAdmin() {
+      const input = document.getElementById('adminCode').value;
+      if (input === "0803") {
+        window.location.href = "admin.html";
+      } else {
+        alert("Code incorrect");
+      }
+    }
 
     dateInput.addEventListener('change', loadSlots);
     window.addEventListener('DOMContentLoaded', loadSlots);
