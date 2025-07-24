@@ -29,7 +29,7 @@
       max-width: 500px;
       width: 100%;
       box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-      border-left: 8px solid #2ecc71;
+      border-left: 8px solid #a8e6cf;
     }
     input, button, select {
       width: 100%;
@@ -43,7 +43,7 @@
       color: #333;
     }
     button {
-      background: #2ecc71;
+      background: #a8e6cf;
       color: white;
       font-weight: 600;
       border: none;
@@ -51,7 +51,7 @@
       cursor: pointer;
     }
     button:hover {
-      background: #27ae60;
+      background: #81c784;
     }
     .grid {
       display: grid;
@@ -59,15 +59,15 @@
       gap: 10px;
     }
     .slot {
-      background: #eafaf1;
+      background: #e9fdf2;
       text-align: center;
       padding: 10px;
       border-radius: 10px;
       cursor: pointer;
-      border: 1px solid #2ecc71;
+      border: 1px solid #a8e6cf;
     }
     .slot.selected {
-      background: #2ecc71;
+      background: #81c784;
       color: #fff;
     }
     .slot.blocked {
@@ -110,14 +110,25 @@
       padding: 5px;
       border-radius: 5px;
     }
+    .nav-link {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: #a8e6cf;
+      padding: 12px 18px;
+      border-radius: 12px;
+      color: #333;
+      text-decoration: none;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
-  <a href="mes-rendez-vous.html" style="position:absolute; top:20px; left:20px; background:#2ecc71; padding:12px 18px; border-radius:12px; color:#fff; text-decoration:none; font-weight:600;">Mes rendez-vous</a>
+  <a href="mes-rendez-vous.html" class="nav-link">Mes rendez-vous</a>
 
   <div class="overlay">
     <div class="container">
-      <h2 style="color:#2ecc71">Prendre rendez-vous</h2>
+      <h2 style="color:#81c784">Prendre rendez-vous</h2>
       <p style="text-align:center; font-size:14px; margin-bottom:20px;">152 chemin de puybarde, Castelnau-sur-Gupie</p>
       <form id="rdvForm">
         <input type="text" name="name" placeholder="Votre nom" required />
