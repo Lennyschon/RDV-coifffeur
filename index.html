@@ -173,6 +173,57 @@
       background: #53ba00;
       color: white;
     }
+  /* ... (tout ton CSS d'origine inchangé) ... */
+
+  @media screen and (max-width: 600px) {
+    .container {
+      padding: 20px;
+      border-radius: 16px;
+      max-width: 100%;
+    }
+
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .nav-link {
+      font-size: 14px;
+      padding: 10px 14px;
+      top: 10px;
+      left: 10px;
+      border-radius: 10px;
+    }
+
+    h2 {
+      font-size: 20px;
+    }
+
+    p {
+      font-size: 12px;
+    }
+
+    input, button, select {
+      font-size: 14px;
+      padding: 12px;
+    }
+
+    .slot {
+      font-size: 14px;
+      padding: 10px;
+    }
+
+    .admin-btn {
+      font-size: 10px;
+    }
+
+    .toast {
+      width: calc(100% - 40px);
+      right: 20px;
+      left: 20px;
+      font-size: 14px;
+    }
+  }
   </style>
 </head>
 <body>
