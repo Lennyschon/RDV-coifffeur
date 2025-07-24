@@ -8,36 +8,31 @@
   <style>
     body {
       font-family: 'Poppins', sans-serif;
+      background: #f5f5f5;
+      color: #222;
       margin: 0;
-      background: url('image0(6).jpeg') no-repeat center center fixed;
-      background-size: cover;
-      color: #333;
-    }
-    .overlay {
-      background: rgba(0, 0, 0, 0.6);
-      min-height: 100vh;
-      padding: 40px 20px;
-      backdrop-filter: blur(8px);
-    }
-    .calendar-container {
-      max-width: 1000px;
-      margin: 0 auto;
-      background: rgba(255, 255, 255, 0.95);
-      padding: 30px;
-      border-radius: 20px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      padding: 20px;
     }
     h2 {
       text-align: center;
       margin-bottom: 20px;
-      font-weight: 600;
-      color: #222;
     }
-    .controls {
+    .calendar-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+    .controls, .schedule-controls {
       text-align: center;
       margin-bottom: 20px;
     }
-    .controls button, .back-button {
+    button, select, input[type="checkbox"] {
+      font-family: 'Poppins', sans-serif;
+    }
+    .controls button, .back-button, .save-schedule-btn {
       background: #5fd100;
       color: white;
       border: none;
@@ -46,60 +41,96 @@
       border-radius: 10px;
       font-weight: bold;
       cursor: pointer;
-      transition: background 0.3s ease;
+      transition: background 0.3s;
     }
-    .controls button:hover, .back-button:hover {
-      background: #53ba00;
+    .controls button:hover, .back-button:hover, .save-schedule-btn:hover {
+      background: #4aa600;
     }
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(2, 1fr);
       gap: 20px;
       padding-bottom: 10px;
     }
     .slot {
-      padding: 16px;
+      padding: 20px;
       text-align: center;
       border-radius: 12px;
-      background: #d6f5d6;
+      background: #e1fbd0;
       color: #222;
       cursor: pointer;
       font-size: 18px;
-      box-shadow: inset 0 0 0 2px #5fd100;
     }
     .slot.blocked {
-      background: #ffe5e5;
-      color: #a00;
+      background: #ffd6d6;
       cursor: not-allowed;
-      box-shadow: inset 0 0 0 2px #a00;
+      opacity: 0.8;
+    }
+    .slot:hover:not(.blocked) {
+      background: #d1f3bd;
     }
     .slot-name {
       font-size: 0.9em;
-      color: #444;
+      color: #666;
       margin-top: 6px;
     }
     .slot-phone {
       font-size: 0.85em;
-      color: #666;
+      color: #999;
+    }
+    .schedule-controls {
+      margin: 30px auto;
+      max-width: 600px;
+      background: #f0f0f0;
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .checkboxes {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .checkboxes label {
+      display: flex;
+      align-items: center;
+      background: white;
+      padding: 6px 10px;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
     }
     .back-button {
       display: block;
       margin: 20px auto 0;
+      text-align: center;
     }
   </style>
 </head>
 <body>
-  <div class="overlay">
-    <div class="calendar-container">
-      <h2 id="dateTitle">Calendrier administrateur</h2>
-      <div class="controls">
-        <button onclick="changeDay(-1)">⬅️ Précédent</button>
-        <button onclick="changeDay(1)">Suivant ➡️</button>
-        <button onclick="clearDay()">🗑️ Supprimer tous les créneaux du jour</button>
-      </div>
-      <div class="grid" id="slots"></div>
-      <button class="back-button" onclick="window.location.href='index.html'">⬅ Retour</button>
+  <div class="calendar-container">
+    <h2 id="dateTitle">Calendrier administrateur</h2>
+    <div class="controls">
+      <button onclick="changeDay(-1)">⬅️ Précédent</button>
+      <button onclick="changeDay(1)">Suivant ➡️</button>
+      <button onclick="clearDay()">🗑️ Supprimer tous les créneaux du jour</button>
     </div>
+
+    <div class="schedule-controls">
+      <h3>Définir les horaires d'ouverture</h3>
+      <label>Période : 
+        <select id="periodType">
+          <option value="day">Aujourd'hui</option>
+          <option value="week">Cette semaine</option>
+          <option value="month">Ce mois</option>
+        </select>
+      </label>
+      <div class="checkboxes" id="hourCheckboxes"></div>
+      <button class="save-schedule-btn" onclick="saveSchedule()">Enregistrer les horaires</button>
+    </div>
+
+    <div class="grid" id="slots"></div>
+    <button class="back-button" onclick="window.location.href='index.html'">⬅ Retour</button>
   </div>
 
   <script>
@@ -107,8 +138,8 @@
     const API_KEY = "$2a$10$YqBXzyqiaHue0./s7FwmUe5TZXvSEZ/zC9yjaWk9HLXxrH2SahHF6";
     const BIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
     const hours = ["12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"];
-
     let currentDate = new Date();
+    let availableHours = {}; // pour stocker les horaires configurés
 
     function formatDate(date) {
       return date.toISOString().split("T")[0];
@@ -124,11 +155,15 @@
       const res = await fetch(BIN_URL + "/latest", { headers: { "X-Master-Key": API_KEY } });
       const json = await res.json();
       const data = json.record;
-      const dayData = data[dateStr] || [];
       const slotsContainer = document.getElementById("slots");
       slotsContainer.innerHTML = "";
+      const availableRes = data._availableHours || {};
+      availableHours = availableRes;
+      let activeHours = availableHours[dateStr] || hours;
 
-      hours.forEach(hour => {
+      const dayData = data[dateStr] || [];
+
+      activeHours.forEach(hour => {
         const div = document.createElement("div");
         div.className = "slot";
         const entry = dayData.find(d => typeof d === 'object' ? d.time === hour : d === hour);
@@ -155,13 +190,8 @@
         div.addEventListener("click", async () => {
           let updated = [...(data[dateStr] || [])];
           const idx = updated.findIndex(e => (typeof e === 'object' && e.time === hour) || e === hour);
-
-          if (idx > -1) {
-            updated.splice(idx, 1);
-          } else {
-            updated.push(hour);
-          }
-
+          if (idx > -1) updated.splice(idx, 1);
+          else updated.push(hour);
           data[dateStr] = updated;
           await fetch(BIN_URL, {
             method: "PUT",
@@ -202,6 +232,59 @@
       loadSlots();
     }
 
+    function generateHourCheckboxes() {
+      const box = document.getElementById("hourCheckboxes");
+      box.innerHTML = "";
+      hours.forEach(h => {
+        const label = document.createElement("label");
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.value = h;
+        checkbox.checked = true;
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(" " + h));
+        box.appendChild(label);
+      });
+    }
+
+    async function saveSchedule() {
+      const period = document.getElementById("periodType").value;
+      const selected = Array.from(document.querySelectorAll("#hourCheckboxes input:checked")).map(cb => cb.value);
+      let date = new Date(currentDate);
+
+      const res = await fetch(BIN_URL + "/latest", { headers: { "X-Master-Key": API_KEY } });
+      const json = await res.json();
+      const data = json.record;
+      if (!data._availableHours) data._availableHours = {};
+
+      if (period === 'day') {
+        data._availableHours[formatDate(date)] = selected;
+      } else if (period === 'week') {
+        for (let i = 0; i < 7; i++) {
+          let d = new Date(date);
+          d.setDate(date.getDate() - date.getDay() + i);
+          data._availableHours[formatDate(d)] = selected;
+        }
+      } else if (period === 'month') {
+        const month = date.getMonth();
+        while (date.getMonth() === month) {
+          data._availableHours[formatDate(date)] = selected;
+          date.setDate(date.getDate() + 1);
+        }
+      }
+
+      await fetch(BIN_URL, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Master-Key": API_KEY
+        },
+        body: JSON.stringify(data)
+      });
+      loadSlots();
+    }
+
+    generateHourCheckboxes();
     loadSlots();
   </script>
 </body>
