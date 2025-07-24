@@ -32,7 +32,7 @@
     button, select, input[type="checkbox"] {
       font-family: 'Poppins', sans-serif;
     }
-    .controls button, .back-button, .save-schedule-btn {
+    .controls button, .back-button, .save-schedule-btn, .reset-schedule-btn {
       background: #5fd100;
       color: white;
       border: none;
@@ -43,7 +43,7 @@
       cursor: pointer;
       transition: background 0.3s;
     }
-    .controls button:hover, .back-button:hover, .save-schedule-btn:hover {
+    .controls button:hover, .back-button:hover, .save-schedule-btn:hover, .reset-schedule-btn:hover {
       background: #4aa600;
     }
     .grid {
@@ -127,6 +127,7 @@
       </label>
       <div class="checkboxes" id="hourCheckboxes"></div>
       <button class="save-schedule-btn" onclick="saveSchedule()">Enregistrer les horaires</button>
+      <button class="reset-schedule-btn" onclick="resetSchedule()">Réinitialiser les horaires</button>
     </div>
 
     <div class="grid" id="slots"></div>
@@ -139,7 +140,7 @@
     const BIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
     const hours = ["12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"];
     let currentDate = new Date();
-    let availableHours = {}; // pour stocker les horaires configurés
+    let availableHours = {};
 
     function formatDate(date) {
       return date.toISOString().split("T")[0];
@@ -157,16 +158,13 @@
       const data = json.record;
       const slotsContainer = document.getElementById("slots");
       slotsContainer.innerHTML = "";
-      const availableRes = data._availableHours || {};
-      availableHours = availableRes;
-      let activeHours = availableHours[dateStr] || hours;
 
-      const dayData = data[dateStr] || [];
+      let activeHours = availableHours[dateStr] || hours;
 
       activeHours.forEach(hour => {
         const div = document.createElement("div");
         div.className = "slot";
-        const entry = dayData.find(d => typeof d === 'object' ? d.time === hour : d === hour);
+        const entry = data[dateStr]?.find(d => typeof d === 'object' ? d.time === hour : d === hour);
         div.textContent = hour;
 
         if (entry) {
@@ -247,40 +245,31 @@
       });
     }
 
-    async function saveSchedule() {
+    function saveSchedule() {
       const period = document.getElementById("periodType").value;
       const selected = Array.from(document.querySelectorAll("#hourCheckboxes input:checked")).map(cb => cb.value);
       let date = new Date(currentDate);
 
-      const res = await fetch(BIN_URL + "/latest", { headers: { "X-Master-Key": API_KEY } });
-      const json = await res.json();
-      const data = json.record;
-      if (!data._availableHours) data._availableHours = {};
-
       if (period === 'day') {
-        data._availableHours[formatDate(date)] = selected;
+        availableHours[formatDate(date)] = selected;
       } else if (period === 'week') {
         for (let i = 0; i < 7; i++) {
           let d = new Date(date);
           d.setDate(date.getDate() - date.getDay() + i);
-          data._availableHours[formatDate(d)] = selected;
+          availableHours[formatDate(d)] = selected;
         }
       } else if (period === 'month') {
         const month = date.getMonth();
         while (date.getMonth() === month) {
-          data._availableHours[formatDate(date)] = selected;
+          availableHours[formatDate(date)] = selected;
           date.setDate(date.getDate() + 1);
         }
       }
+      loadSlots();
+    }
 
-      await fetch(BIN_URL, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Master-Key": API_KEY
-        },
-        body: JSON.stringify(data)
-      });
+    function resetSchedule() {
+      availableHours = {};
       loadSlots();
     }
 
