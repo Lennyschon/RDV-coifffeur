@@ -144,6 +144,35 @@
       background: #53ba00;
       color: white;
     }
+    .admin-btn {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 12px;
+      cursor: pointer;
+      opacity: 0.6;
+      transition: opacity 0.3s ease;
+    }
+    .admin-btn:hover {
+      opacity: 1;
+    }
+    .admin-popup {
+      position: fixed;
+      bottom: 40px;
+      right: 10px;
+      background: rgba(0,0,0,0.75);
+      padding: 10px;
+      border-radius: 10px;
+      display: none;
+    }
+    .admin-popup input {
+      width: 100px;
+      padding: 5px;
+      border-radius: 5px;
+    }
     @media (max-width: 600px) {
       .container {
         padding: 20px;
@@ -160,6 +189,11 @@
 </head>
 <body>
 <a href="mes-rendez-vous.html" class="nav-link">Mes rendez-vous</a>
+<button class="admin-btn" onclick="document.getElementById('adminPopup').style.display='block'">⚙️ Admin</button>
+<div class="admin-popup" id="adminPopup">
+  <input type="password" id="adminCode" placeholder="Code">
+  <button onclick="checkAdmin()">OK</button>
+</div>
 <div id="toast" class="toast">✅ Réservation enregistrée</div>
 <div class="overlay">
   <div class="container">
@@ -177,6 +211,16 @@
     </form>
   </div>
 </div>
+<script>
+function checkAdmin() {
+  const input = document.getElementById('adminCode').value;
+  if (input === "0803") {
+    window.location.href = "admin.html";
+  } else {
+    alert("Code incorrect");
+  }
+}
+</script>
 <script>
 const BIN_ID = "686647098960c979a5b64e4d";
 const API_KEY = "$2a$10$YqBXzyqiaHue0./s7FwmUe5TZXvSEZ/zC9yjaWk9HLXxrH2SahHF6";
