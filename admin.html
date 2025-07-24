@@ -3,101 +3,103 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin - Calendrier</title>
+  <title>Page admin - Calendrier</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
-      margin: 0;
       font-family: 'Poppins', sans-serif;
-      background: #0b0b0b;
-      color: white;
-      padding: 20px;
+      margin: 0;
+      background: url('image0(6).jpeg') no-repeat center center fixed;
+      background-size: cover;
+      color: #333;
     }
-    h2 {
-      text-align: center;
-      font-size: 28px;
-      margin-bottom: 20px;
+    .overlay {
+      background: rgba(0, 0, 0, 0.6);
+      min-height: 100vh;
+      padding: 40px 20px;
+      backdrop-filter: blur(8px);
     }
     .calendar-container {
       max-width: 1000px;
       margin: 0 auto;
-      background: rgba(255, 255, 255, 0.05);
-      padding: 25px;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 30px;
       border-radius: 20px;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-weight: 600;
+      color: #222;
     }
     .controls {
       text-align: center;
-      margin-bottom: 25px;
+      margin-bottom: 20px;
     }
     .controls button, .back-button {
       background: #5fd100;
       color: white;
       border: none;
-      padding: 12px 20px;
-      margin: 8px;
-      border-radius: 12px;
-      font-weight: 600;
-      font-size: 16px;
+      padding: 10px 20px;
+      margin: 5px;
+      border-radius: 10px;
+      font-weight: bold;
       cursor: pointer;
-      transition: background 0.3s ease, transform 0.1s;
+      transition: background 0.3s ease;
     }
     .controls button:hover, .back-button:hover {
-      background: #4cbc00;
-    }
-    .controls button:active, .back-button:active {
-      transform: scale(0.96);
+      background: #53ba00;
     }
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 20px;
+      padding-bottom: 10px;
     }
     .slot {
-      background: rgba(0, 128, 0, 0.4);
-      padding: 20px;
-      border-radius: 14px;
+      padding: 16px;
       text-align: center;
-      font-size: 18px;
-      position: relative;
-      transition: all 0.2s ease;
+      border-radius: 12px;
+      background: #d6f5d6;
+      color: #222;
       cursor: pointer;
-    }
-    .slot:hover:not(.blocked) {
-      background: rgba(0, 128, 0, 0.7);
+      font-size: 18px;
+      box-shadow: inset 0 0 0 2px #5fd100;
     }
     .slot.blocked {
-      background: rgba(255, 0, 0, 0.5);
+      background: #ffe5e5;
+      color: #a00;
       cursor: not-allowed;
-      opacity: 0.85;
+      box-shadow: inset 0 0 0 2px #a00;
     }
     .slot-name {
-      font-size: 14px;
-      color: #ccc;
-      margin-top: 8px;
+      font-size: 0.9em;
+      color: #444;
+      margin-top: 6px;
     }
     .slot-phone {
-      font-size: 13px;
-      color: #999;
+      font-size: 0.85em;
+      color: #666;
     }
     .back-button {
       display: block;
-      margin: 30px auto 0;
-      text-align: center;
+      margin: 20px auto 0;
     }
   </style>
 </head>
 <body>
-  <div class="calendar-container">
-    <h2 id="dateTitle">Calendrier administrateur</h2>
-    <div class="controls">
-      <button onclick="changeDay(-1)">⬅️ Précédent</button>
-      <button onclick="changeDay(1)">Suivant ➡️</button>
-      <button onclick="clearDay()">🗑️ Supprimer tous les créneaux</button>
+  <div class="overlay">
+    <div class="calendar-container">
+      <h2 id="dateTitle">Calendrier administrateur</h2>
+      <div class="controls">
+        <button onclick="changeDay(-1)">⬅️ Précédent</button>
+        <button onclick="changeDay(1)">Suivant ➡️</button>
+        <button onclick="clearDay()">🗑️ Supprimer tous les créneaux du jour</button>
+      </div>
+      <div class="grid" id="slots"></div>
+      <button class="back-button" onclick="window.location.href='index.html'">⬅ Retour</button>
     </div>
-    <div class="grid" id="slots"></div>
-    <button class="back-button" onclick="window.location.href='index.html'">⬅ Retour à l'accueil</button>
   </div>
 
   <script>
@@ -113,34 +115,27 @@
     }
 
     function updateTitle(date) {
-      document.getElementById("dateTitle").innerText =
-        date.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      return date.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     }
 
     async function loadSlots() {
       const dateStr = formatDate(currentDate);
-      updateTitle(currentDate);
-
-      const res = await fetch(BIN_URL + "/latest", {
-        headers: { "X-Master-Key": API_KEY }
-      });
+      document.getElementById("dateTitle").innerText = updateTitle(currentDate);
+      const res = await fetch(BIN_URL + "/latest", { headers: { "X-Master-Key": API_KEY } });
       const json = await res.json();
       const data = json.record;
       const dayData = data[dateStr] || [];
-
       const slotsContainer = document.getElementById("slots");
       slotsContainer.innerHTML = "";
 
       hours.forEach(hour => {
         const div = document.createElement("div");
         div.className = "slot";
-        div.textContent = hour;
-
         const entry = dayData.find(d => typeof d === 'object' ? d.time === hour : d === hour);
+        div.textContent = hour;
 
         if (entry) {
           div.classList.add("blocked");
-
           if (typeof entry === 'object') {
             if (entry.name) {
               const name = document.createElement("div");
@@ -168,7 +163,6 @@
           }
 
           data[dateStr] = updated;
-
           await fetch(BIN_URL, {
             method: "PUT",
             headers: {
@@ -177,7 +171,6 @@
             },
             body: JSON.stringify(data)
           });
-
           loadSlots();
         });
 
@@ -192,12 +185,9 @@
 
     async function clearDay() {
       const dateStr = formatDate(currentDate);
-      const res = await fetch(BIN_URL + "/latest", {
-        headers: { "X-Master-Key": API_KEY }
-      });
+      const res = await fetch(BIN_URL + "/latest", { headers: { "X-Master-Key": API_KEY } });
       const json = await res.json();
       const data = json.record;
-
       delete data[dateStr];
 
       await fetch(BIN_URL, {
